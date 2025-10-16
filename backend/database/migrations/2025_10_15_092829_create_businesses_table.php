@@ -15,9 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->string('slug', 150)->unique();
-            $table->unsignedBigInteger('owner_id')->unsigned()->nullable();
-            $table->foreign('owner_id')->references('id')->on('users');
-            $table->string('email', 100)->unique(); 
+            $table->foreignId('owner_id')->nullable()->constrained('users')->onDelete('set null')->onUpdate('cascade');
+            $table->string('email', 100)->unique();
             $table->string('logo')->nullable();
             $table->string('phone', 20)->nullable();
             $table->string('address')->nullable();

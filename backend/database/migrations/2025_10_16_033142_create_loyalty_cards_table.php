@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('loyality_cards', function (Blueprint $table) {
+        Schema::create('loyalty_cards', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('business_id')->unsigned()->nullable();
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
+            $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
             $table->string('name', 100)->index();
             $table->json('design_json')->nullable();
             $table->string('reward_type', 100);
@@ -29,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('loyality_cards');
+        Schema::dropIfExists('loyalty_cards');
     }
 };
