@@ -17,6 +17,7 @@ class AuthController extends Controller
         // dd("hello jihad");
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
+            'username' => 'required|string|max:100',
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|min:6',
         ]);
@@ -27,6 +28,7 @@ class AuthController extends Controller
 
         $user = User::create([
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
@@ -39,6 +41,37 @@ class AuthController extends Controller
             'token' => $token
         ], 201);
     }
+
+    public function registerBusinessOwner(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:100',
+            'username' => 'required|string|max:100',
+            'email' => 'required|string|email|max:100|unique:users',
+            'password' => 'required|string|min:6|confirmed', // include password_confirmation
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+            'role' => 'business_owner',
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            'message' => 'Registration submitted successfully. Waiting for admin approval.',
+            'user' => $user,
+        ], 201);
+    }
+
 
     // ✅ Login
     // public function login(Request $request)
@@ -72,6 +105,20 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
+
+        // Check user first
+        $user = \App\Models\User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Invalid credentials'], 401);
+        }
+
+        // Prevent login if user not active
+        if ($user->status !== 'active') {
+            return response()->json(['error' => 'Your account is not approved yet.'], 403);
+        }
+
+
 
         // Attempt to verify credentials and create a token
         if (!$token = auth()->attempt($credentials)) {

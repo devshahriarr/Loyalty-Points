@@ -14,5 +14,7 @@ class Business extends Model
         'logo',
         'phone',
         'address',
+        'status',
+        'role',
     ];
 }

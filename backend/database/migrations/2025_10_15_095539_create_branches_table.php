@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
             $table->string('address');
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
