@@ -18,8 +18,10 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('phone', 20)->nullable()->index();
-            $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('set null')->onUpdate('cascade');
-            $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('set null')->onUpdate('cascade');
+            $table->unsignedBigInteger('business_id')->nullable();
+            $table->unsignedBigInteger('branch_id')->nullable();
+            // $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('set null')->onUpdate('cascade');
+            // $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('set null')->onUpdate('cascade');
             $table->enum('status', ['active', 'inactive', 'pending'])->default('pending');
             $table->rememberToken();
             $table->timestamps();
