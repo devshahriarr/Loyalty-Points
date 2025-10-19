@@ -17,5 +17,5 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
 
     // Route::apiResource('businesses', \App\Http\Controllers\BusinessController::class);
-    Route::apiResource('business', BusinessController::class);
 });
+Route::apiResource('business', BusinessController::class);
