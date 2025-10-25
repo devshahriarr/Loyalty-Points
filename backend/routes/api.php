@@ -7,7 +7,10 @@ use App\Http\Controllers\BusinessController;
 
 // Business Registration and Management Routes
 Route::post('/business-register', [AuthController::class, 'registerBusinessOwner']);
-Route::post('/admin/approve-business-owner/{id}', [AdminController::class, 'approveBusinessOwner']);
+// Route::post('/admin/approve-business-owner/{id}', [AdminController::class, 'approveBusinessOwner']);
+Route::middleware(['auth:api', 'role:system_admin'])->group(function () {
+    Route::post('/admin/approve-business-owner/{id}', [AdminController::class, 'approveBusinessOwner']);
+});
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

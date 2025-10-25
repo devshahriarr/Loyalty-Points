@@ -15,7 +15,7 @@ class AdminController extends Controller
         $user = User::where('id', $id)
         ->where('role', 'business_owner')
         ->where('status', 'pending')
-        ->firstOrFail();
+        ->first();
 
         // add graceful response
         if (!$user) {
@@ -26,6 +26,7 @@ class AdminController extends Controller
         // Update user status
         $user->status = 'active';
         $user->save();
+        $user->assignRole('business_owner');
 
         // Auto-create business
         $business = Business::create([
