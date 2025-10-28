@@ -17,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+
+        // Tenant middleware group for Spatie Multitenancy
+        $middleware->group('tenant', [
+            \Spatie\Multitenancy\Http\Middleware\NeedsTenant::class,
+            \Spatie\Multitenancy\Http\Middleware\EnsureValidTenantSession::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

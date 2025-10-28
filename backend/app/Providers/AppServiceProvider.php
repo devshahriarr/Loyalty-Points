@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Tenant;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Multitenancy\Models\Tenant as BaseTenant;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        BaseTenant::useModel(Tenant::class);
     }
 }

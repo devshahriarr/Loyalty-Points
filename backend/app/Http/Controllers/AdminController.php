@@ -5,19 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Business;
+use App\Models\Tenant;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
     public function approveBusinessOwner($id)
     {
-        // $allUser = User::all();
-        // dd($allUser);
         $user = User::where('id', $id)
         ->where('status', 'pending')
         ->first();
 
-        // dd($user);
         // add graceful response
         if (!$user) {
             return response()->json([
@@ -44,10 +42,23 @@ class AdminController extends Controller
         $user->business_id = $business->id;
         $user->save();
 
+        // Create tenant for the business
+        $domain = Str::slug($business->name);
+        $database = 'tenant_' . Str::slug($business->name, '_');
+
+        $tenant = Tenant::create([
+            'name' => $business->name,
+            'domain' => $domain,
+            'database' => $database,
+            'business_id' => $business->id,
+        ]);
+
         return response()->json([
             'message' => 'Business owner approved successfully!',
             'user' => $user,
             'business' => $business,
+            'tenant' => $tenant,
+            'tenant_url' => 'http://' . $domain . '.' . config('app.domain')
         ]);
     }
 }

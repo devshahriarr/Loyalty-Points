@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', 'landlord'),
 
     /*
     |--------------------------------------------------------------------------
@@ -40,6 +40,46 @@ return [
             'busy_timeout' => null,
             'journal_mode' => null,
             'synchronous' => null,
+        ],
+
+        'landlord' => [
+            'driver' => 'mysql',
+            'url' => env('LANDLORD_DB_URL'),
+            'host' => env('LANDLORD_DB_HOST', '127.0.0.1'),
+            'port' => env('LANDLORD_DB_PORT', '3306'),
+            'database' => env('LANDLORD_DB_DATABASE', 'loyalty_cards_landlord'),
+            'username' => env('LANDLORD_DB_USERNAME', 'root'),
+            'password' => env('LANDLORD_DB_PASSWORD', ''),
+            'unix_socket' => env('LANDLORD_DB_SOCKET', ''),
+            'charset' => env('LANDLORD_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('LANDLORD_DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'tenant' => [
+            'driver' => 'mysql',
+            'url' => env('TENANT_DB_URL'),
+            'host' => env('TENANT_DB_HOST', '127.0.0.1'),
+            'port' => env('TENANT_DB_PORT', '3306'),
+            'database' => env('TENANT_DB_DATABASE', 'loyalty_cards_tenant'),
+            'username' => env('TENANT_DB_USERNAME', 'root'),
+            'password' => env('TENANT_DB_PASSWORD', ''),
+            'unix_socket' => env('TENANT_DB_SOCKET', ''),
+            'charset' => env('TENANT_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('TENANT_DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
         ],
 
         'mysql' => [
