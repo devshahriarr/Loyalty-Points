@@ -11,22 +11,25 @@ class AdminController extends Controller
 {
     public function approveBusinessOwner($id)
     {
-        // dd($id);
+        // $allUser = User::all();
+        // dd($allUser);
         $user = User::where('id', $id)
-        ->where('role', 'business_owner')
         ->where('status', 'pending')
         ->first();
 
+        // dd($user);
         // add graceful response
         if (!$user) {
             return response()->json([
                 'error' => 'Pending business owner not found or already approved.'
             ], 404);
         }
+        // asign role
+        $user->assignRole('business_owner');
+
         // Update user status
         $user->status = 'active';
         $user->save();
-        $user->assignRole('business_owner');
 
         // Auto-create business
         $business = Business::create([

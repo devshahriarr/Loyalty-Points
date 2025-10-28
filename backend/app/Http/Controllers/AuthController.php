@@ -121,7 +121,7 @@ class AuthController extends Controller
 
 
         // Attempt to verify credentials and create a token
-        if (!$token = auth()->attempt($credentials)) {
+        if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
@@ -129,13 +129,14 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Login successful',
             'token' => $token,
-            'user' => auth()->user(),
+            'user' => $user,
         ]);
     }
 
     // ✅ Get logged in user info
     public function me()
     {
+        // dd("me");
         return response()->json(auth()->user());
     }
 
@@ -158,7 +159,7 @@ class AuthController extends Controller
                 'token' => $newToken,
                 'user' => auth()->user()
             ]);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return response()->json(['error' => 'Invalid token'], 401);
         }
     }
