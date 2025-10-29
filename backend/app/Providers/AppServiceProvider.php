@@ -11,16 +11,17 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void
-    {
-        //
-    }
+    // public function boot(): void
+    // {
+    //     // Register our custom Tenant model with Spatie's multitenancy package
+    //     \Spatie\Multitenancy\Models\Tenant::useModel(\App\Models\Tenant::class);
+    // }
 
     /**
      * Bootstrap any application services.
      */
     public function boot(): void
     {
-        BaseTenant::useModel(Tenant::class);
+        // BaseTenant::useModel(Tenant::class);
     }
 }
