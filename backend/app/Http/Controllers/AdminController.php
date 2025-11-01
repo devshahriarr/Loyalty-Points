@@ -44,7 +44,7 @@ class AdminController extends Controller
 
         // Create tenant for the business
         $domain = Str::slug($business->name);
-        $database = 'tenant_' . Str::slug($business->name, '_');
+        $database = 'tenant_' . Str::slug($business->name, '_' . time());
 
         $tenant = Tenant::create([
             'name' => $business->name,

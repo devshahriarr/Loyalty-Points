@@ -20,11 +20,11 @@ return new class extends Migration
                 ->onUpdate('cascade');
 
             // Foreign key: users.branch_id → branches.id
-            $table->foreign('branch_id')
-                ->references('id')
-                ->on('branches')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
+            // $table->foreign('branch_id')
+            //     ->references('id')
+            //     ->on('branches')
+            //     ->onDelete('set null')
+            //     ->onUpdate('cascade');
         });
     }
 
@@ -35,7 +35,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['business_id']);
-            $table->dropForeign(['branch_id']);
+            // $table->dropForeign(['branch_id']);
         });
     }
 };

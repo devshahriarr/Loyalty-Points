@@ -11,7 +11,7 @@ use Spatie\Multitenancy\Actions\ForgetCurrentTenantAction;
 use Spatie\Multitenancy\Actions\MakeQueueTenantAwareAction;
 use Spatie\Multitenancy\Actions\MakeTenantCurrentAction;
 use Spatie\Multitenancy\Actions\MigrateTenantAction;
-use Spatie\Multitenancy\Models\Tenant;
+use App\Models\Tenant;
 
 return [
     /*
@@ -85,6 +85,10 @@ return [
      */
     'shared_routes_cache' => false,
 
+    // set database migration path for tenants
+    'migrations_paths' => [
+        database_path('migrations/tenant'),
+    ],
     /*
      * You can customize some of the behavior of this package by using your own custom action.
      * Your custom action should always extend the default one.

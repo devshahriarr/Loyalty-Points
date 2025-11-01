@@ -68,7 +68,7 @@ return [
             'host' => env('TENANT_DB_HOST', '127.0.0.1'),
             'port' => env('TENANT_DB_PORT', '3306'),
             // 'database' => env('TENANT_DB_DATABASE', 'loyalty_cards_tenant'),
-            'database' => '', // we will set database dynamically
+            'database' => null, // we will set database dynamically
             'username' => env('TENANT_DB_USERNAME', 'root'),
             'password' => env('TENANT_DB_PASSWORD', ''),
             'unix_socket' => env('TENANT_DB_SOCKET', ''),
