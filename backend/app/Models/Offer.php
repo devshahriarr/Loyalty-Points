@@ -15,6 +15,5 @@ class Offer extends Model
         'end_date',
         'points_required',
         'status',
-        'tenant_id',
     ];
 }

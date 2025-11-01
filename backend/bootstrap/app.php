@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->web([
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        ]);
+        
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
@@ -20,7 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Tenant middleware group for Spatie Multitenancy
         $middleware->group('tenant', [
+            \App\Http\Middleware\EnsureTenantExists::class,
             \Spatie\Multitenancy\Http\Middleware\NeedsTenant::class,
+            \Illuminate\Session\Middleware\StartSession::class,
             \Spatie\Multitenancy\Http\Middleware\EnsureValidTenantSession::class,
         ]);
     })

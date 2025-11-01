@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('loyalty_cards', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
+            // $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
             $table->string('name', 100)->index();
             $table->json('design_json')->nullable();
             $table->string('reward_type', 100);

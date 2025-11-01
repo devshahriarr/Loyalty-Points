@@ -14,7 +14,6 @@ class Customer extends Model
         'phone',
         'address',
         'status',
-        'tenant_id',
     ];
 
     public function loyaltyCards()

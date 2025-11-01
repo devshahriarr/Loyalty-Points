@@ -13,7 +13,6 @@ class VisitLog extends Model
         'branch_id',
         'visit_date',
         'notes',
-        'tenant_id',
     ];
     
     public function customer()

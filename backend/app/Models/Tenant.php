@@ -50,19 +50,19 @@ class Tenant extends BaseTenant
             // // মাইগ্রেশন চালাও
             Artisan::call('migrate', [
                 '--database' => 'tenant', // tenant connection
-                '--path' => '/database/migrations/tenant', // migration folder
+                '--path' => 'database/migrations/tenants', // migration folder
                 '--force' => true,
             ]);
+            logger("Tenant {$tenant->name} migrated successfully");
+
+            // Current tenant মুছে ফেলো
+            $tenant->forgetCurrent();
 
             // app(MigrateTenantAction::class)->execute($tenant);
 
             // মাইগ্রেশন চালাও
             // app(MigrateTenantAction::class)->execute($tenant);
 
-            logger("Tenant {$tenant->name} migrated successfully");
-
-            // Current tenant মুছে ফেলো
-            $tenant->forgetCurrent();
         });
     }
 

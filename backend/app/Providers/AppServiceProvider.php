@@ -22,6 +22,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // BaseTenant::useModel(Tenant::class);
+        // Register our custom Tenant model
+        $tenantModelClass = config('multitenancy.tenant_model');
+        app()->singleton(BaseTenant::class, function () use ($tenantModelClass) {
+            return new $tenantModelClass;
+        });
+        
+        // Make sure the current() method returns the correct type
+        app()->extend('currentTenant', function ($service, $app) {
+            return $app->make(config('multitenancy.tenant_model'));
+        });
     }
 }

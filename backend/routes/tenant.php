@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Tenant;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,14 +15,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['api', 'auth:api'])->prefix('api')->group(function () {
-    // Tenant-specific routes
-    Route::get('/tenant-info', function () {
-        return response()->json([
-            'tenant' => tenant(),
-            'message' => 'You are accessing tenant-specific data'
-        ]);
-    });
+Route::middleware(['api', 'tenant'])->prefix('api')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    // Public tenant endpoints (no auth required)
+    Route::get('/tenant-info', [\App\Http\Controllers\TenantTestController::class, 'info']);
+    Route::get('/tenant-test-db', [\App\Http\Controllers\TenantTestController::class, 'testDatabase']);
+    
+    // Protected tenant endpoints
+    Route::middleware(['auth:api'])->group(function () {
 
     // Branch routes
     // Route::apiResource('branches', \App\Http\Controllers\BranchController::class);
@@ -39,4 +42,5 @@ Route::middleware(['api', 'auth:api'])->prefix('api')->group(function () {
 
     // Offers routes
     // Route::apiResource('offers', \App\Http\Controllers\OfferController::class);
+    });
 });

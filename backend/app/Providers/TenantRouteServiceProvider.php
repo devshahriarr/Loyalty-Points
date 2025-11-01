@@ -11,6 +11,6 @@ class TenantRouteServiceProvider extends ServiceProvider
     {
         // Load tenant routes under the 'tenant' middleware group
         Route::middleware(['tenant'])
-            ->group(base_path('routes/tenant.php'));
+            ->prefix('api')->group(base_path('routes/tenant.php'));
     }
 }

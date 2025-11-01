@@ -13,7 +13,6 @@ class CustomerPoint extends Model
         'points',
         'transaction_type',
         'description',
-        'tenant_id',
     ];
     
     public function customer()
