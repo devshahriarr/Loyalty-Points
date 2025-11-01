@@ -93,7 +93,7 @@ return [
         'make_tenant_current_action' => MakeTenantCurrentAction::class,
         'forget_current_tenant_action' => ForgetCurrentTenantAction::class,
         'make_queue_tenant_aware_action' => MakeQueueTenantAwareAction::class,
-        'migrate_tenant' => MigrateTenantAction::class,
+        'migrate_tenant_action' => MigrateTenantAction::class,
     ],
 
     /*
