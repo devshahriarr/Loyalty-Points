@@ -14,6 +14,16 @@ class User extends Authenticatable implements JWTSubject
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, UsesTenantConnection;
 
+    public function getConnectionName()
+    {
+        // Check if the current tenant is bound in the container
+        if (app()->bound('currentTenant')) {
+            return 'tenant';
+        }
+
+        return 'landlord';
+    }
+
     /**
      * The attributes that are mass assignable.
      *

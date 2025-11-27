@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\LandlordUser as User;
 use App\Models\Business;
 use App\Models\Tenant;
 use Illuminate\Support\Str;
