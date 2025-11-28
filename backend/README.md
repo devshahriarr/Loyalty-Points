@@ -1,66 +1,247 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## Loyalty Point Management – Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A multi-tenant loyalty point management backend built on **Laravel 11**, designed to support:
 
-## About Laravel
+- **Landlord (system)** side for managing business owners and tenants.
+- **Tenant** side per business, with isolated databases using **Spatie Multitenancy**.
+- **JWT-based APIs** for authentication and business/loyalty data access.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This repository currently contains the **backend** codebase (`backend/`); any separate frontend (if added later) should be documented here as well.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Project Overview
 
-## Learning Laravel
+- **Domain**: Loyalty & rewards management (businesses, branches, customers, cards, points, offers, visits, subscriptions).
+- **Architecture**: Laravel monolith with **landlord + tenant** database pattern.
+- **Tenancy**:
+  - Landlord DB holds `users`, `businesses`, `tenants`, roles/permissions.
+  - Each tenant DB holds customers, cards, points, branches, offers, etc.
+  - Tenant DBs are created and migrated automatically when a business is approved.
+- **Authentication**:
+  - **JWT** (`tymon/jwt-auth`) via `auth:api` guard.
+  - **Spatie Permission** for roles (e.g. `system_admin`, `business_owner`).
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Tech Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Language**: PHP 8.2+
+- **Framework**: Laravel 11
+- **Auth**: `tymon/jwt-auth`
+- **Multitenancy**: `spatie/laravel-multitenancy`
+- **Authorization / RBAC**: `spatie/laravel-permission`
+- **Database**: MySQL (landlord + tenant connections)
+- **Queue / Jobs**: Database queue
+- **Frontend assets**: Vite, Tailwind (default Laravel welcome page)
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Installation & Setup
 
-### Premium Partners
+### 1. Prerequisites
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- PHP 8.2+
+- Composer
+- MySQL 8+ (or compatible)
+- Node.js 18+ & npm (for Vite/dev assets)
 
-## Contributing
+### 2. Clone & Install
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+git clone <your-repo-url>
+cd backend
 
-## Code of Conduct
+composer install
+npm install
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. Environment Configuration
 
-## Security Vulnerabilities
+Copy `.env.example` to `.env` (or update `env.txt` values into `.env`) and configure:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **Application**
+  - `APP_NAME=Loyalty`
+  - `APP_ENV=local`
+  - `APP_URL=http://localhost`
+  - `APP_KEY` (run `php artisan key:generate` if missing)
+
+- **Landlord DB**
+  - `DB_CONNECTION=mysql`
+  - `DB_HOST=127.0.0.1`
+  - `DB_PORT=3306`
+  - `DB_DATABASE=loyalty`
+  - `DB_USERNAME=...`
+  - `DB_PASSWORD=...`
+
+- **JWT**
+  - `JWT_SECRET=` (run `php artisan jwt:secret` to generate; **do not commit this**)
+
+> **Security Note**: Never commit real `.env` files or secrets (JWT, DB credentials) to version control.
+
+### 4. Database & Seeds
+
+Run landlord migrations and seeds:
+
+```bash
+php artisan migrate
+php artisan db:seed --class=RoleSeeder
+php artisan db:seed --class=SystemAdminSeeder
+```
+
+When a business owner is approved, tenant databases are created and migrated automatically via the `Tenant` model hook.
+
+### 5. Run the Application
+
+For local development (using the Composer script):
+
+```bash
+composer run dev
+```
+
+This will run:
+
+- `php artisan serve`
+- `php artisan queue:listen`
+- `php artisan pail`
+- `npm run dev` (Vite)
+
+You can also run them individually if preferred.
+
+---
+
+## Directory Structure (Backend)
+
+Key directories inside `backend/`:
+
+- **`app/`**
+  - **`Http/Controllers`**: API controllers (auth, admin approval, business CRUD, tenant test, etc.).
+  - **`Http/Middleware`**: `EnsureTenantExists` for resolving tenant from domain.
+  - **`Models`**:
+    - `User`, `LandlordUser`, `Business`, `Tenant`
+    - Tenant-aware models: `Customer`, `CustomerPoint`, `Branch`, `LoyaltyCard`, `Offer`, `VisitLog`, etc.
+  - **`Providers`**:
+    - `TenantRouteServiceProvider` – registers tenant-specific routes.
+  - **`Console/Commands`**:
+    - `DebugTenantCreation` – helper for debugging landlord/tenant role assignment.
+
+- **`config/`**
+  - `auth.php` – JWT-based `api` guard.
+  - `multitenancy.php` – Spatie multitenancy configuration.
+  - `permission.php` – Spatie permission configuration.
+
+- **`database/`**
+  - `migrations/` – landlord tables (users, businesses, tenants, permissions, etc.).
+  - `migrations/tenants/` – tenant tables (branches, customers, loyalty_cards, points, etc.).
+  - `seeders/` – base roles, system admin user.
+
+- **`routes/`**
+  - `web.php` – default Laravel welcome page.
+  - `api.php` – landlord/system APIs (business registration, login, business CRUD, admin approval).
+  - `tenant.php` – tenant-specific APIs mounted under `/api` with `tenant` middleware.
+
+---
+
+## Core Features (Current Implementation)
+
+- **Landlord / System**
+  - Business-owner registration request (`/api/business-register`).
+  - System admin approves pending business owners and:
+    - Assigns `business_owner` role.
+    - Creates a `Business` record.
+    - Creates a `Tenant` with its own database and runs tenant migrations.
+
+- **Authentication**
+  - `POST /api/login` – issue JWT for active users.
+  - `GET /api/me` – returns authenticated user.
+  - `POST /api/logout` – invalidates token.
+  - `POST /api/refresh` – refreshes JWT.
+
+- **Business Management**
+  - `Route::apiResource('business', BusinessController::class)`:
+    - Basic CRUD for `Business` (currently without validation or authorization scoping).
+
+- **Tenancy**
+  - `EnsureTenantExists` middleware resolves tenant based on host.
+  - `Tenant` model:
+    - Creates tenant DB if not exists.
+    - Runs tenant migrations against `tenant` connection.
+  - `TenantAwareModel` trait:
+    - Automatically sets `tenant_id` on create.
+    - Adds global `tenant` scope for isolation.
+
+---
+
+## API Endpoints Summary (High-Level)
+
+### Landlord / System API (`routes/api.php`)
+
+- **Public**
+  - `POST /api/business-register` – request registration as business owner.
+  - `POST /api/login` – email/password login (only active users).
+
+- **Authenticated (`auth:api`)**
+  - `GET /api/me` – current user details.
+  - `POST /api/logout` – logout.
+  - `POST /api/refresh` – refresh token.
+  - `apiResource /api/business` – CRUD operations on `Business`.
+
+- **Admin-only (`auth:api`, `role:system_admin`)**
+  - `POST /api/admin/approve-business-owner/{id}` – approve pending landlord user and bootstrap business + tenant.
+
+### Tenant API (`routes/tenant.php`)
+
+Mounted with `tenant` + `api` middleware and `api` prefix, for example:
+
+- **Public (per tenant)**
+  - `POST /api/register` – tenant-side user registration.
+  - `POST /api/login` – tenant-side login.
+  - `GET /api/tenant-info` – basic tenant info/test.
+  - `GET /api/tenant-test-db` – DB connectivity test.
+
+- **Protected (planned, currently commented/empty controllers)**
+  - Resource routes for:
+    - `branches`
+    - `customers`
+    - `loyalty-cards`
+    - `customer-points`
+    - `visit-logs`
+    - `offers`
+
+> As the project evolves, expand this section with detailed request/response schemas and auth/role constraints.
+
+---
+
+## Developer Guide
+
+- **Coding Guidelines**
+  - Use **form requests** for validation instead of inline `Validator::make`.
+  - Avoid `$request->all()` for mass assignment; explicitly whitelist with DTOs or validated data.
+  - Use **service classes** for complex business logic (e.g. tenant creation, point calculation).
+  - Keep tenant-aware code (models, queries) carefully separated from landlord logic.
+
+- **Multitenancy Tips**
+  - When writing models that live in tenant DBs, use `TenantAwareModel` to enforce `tenant_id` scoping.
+  - Avoid heavy work in `Tenant::booted()`; long-running tasks should be queued.
+  - Always consider which connection (`landlord` vs `tenant`) a query should use.
+
+- **Testing**
+  - Add tests under `tests/Feature` and `tests/Unit`.
+  - Test both landlord and tenant flows (tenant resolution, DB isolation, permissions).
+
+---
+
+## Roadmap & Next Steps
+
+- Implement full tenant-side resources (controllers, routes, validation) for branches, customers, cards, points, and offers.
+- Harden security around mass assignment, authorization, and validation.
+- Add API documentation (OpenAPI/Swagger) and Postman collection.
+- Introduce caching for common read-heavy endpoints.
+- Add monitoring/logging dashboards for tenant operations and migrations.
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is based on Laravel and is available under the **MIT License**. See `LICENSE` for details.
+
