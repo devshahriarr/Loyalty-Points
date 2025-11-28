@@ -58,8 +58,8 @@ class AdminController extends Controller
             'user' => $user,
             'business' => $business,
             'tenant' => $tenant,
-            // 'tenant_url' => 'http://' . $domain . '.' . config('app.domain')
-            'tenant_url' => 'http://' . $domain
+            'tenant_url' => 'http://' . $domain . '.' . config('app.domain')
+            // 'tenant_url' => 'http://' . $domain
         ]);
     }
 }

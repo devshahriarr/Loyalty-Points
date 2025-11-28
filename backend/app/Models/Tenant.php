@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Multitenancy\Actions\MigrateTenantAction;
 use Spatie\Multitenancy\Actions\CreateDatabase;
 
-
 // use App\Actions\CreateDatabase;
 use App\Actions\MigrateTenantSafely;
 
