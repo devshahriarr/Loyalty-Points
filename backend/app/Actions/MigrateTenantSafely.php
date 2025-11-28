@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use Illuminate\Support\Facades\Artisan;
 use Spatie\Multitenancy\Actions\MigrateTenantAction;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -21,7 +22,7 @@ class MigrateTenantSafely extends MigrateTenantAction
     protected function runMigration($tenant)
     {
         // migrate command manually call
-        \Artisan::call('migrate', [
+        Artisan::call('migrate', [
             '--database' => 'tenant',
             '--path' => 'database/migrations/tenant',
             '--force' => true,

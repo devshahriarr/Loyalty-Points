@@ -12,4 +12,9 @@ class LandlordUser extends User
     {
         return 'landlord';
     }
+
+    public function businesses()
+    {
+        return $this->hasMany(Business::class);
+    }
 }

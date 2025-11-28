@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\LandlordUser;
+use Exception;
 use Illuminate\Console\Command;
 
 use Illuminate\Support\Facades\DB;
@@ -17,7 +19,7 @@ class DebugTenantCreation extends Command
 
         try {
             // Create a dummy user for testing
-            $user = \App\Models\LandlordUser::create([
+            $user = LandlordUser::create([
                 'name' => 'Guard Test User',
                 'username' => 'guardtest_' . time(),
                 'email' => 'guardtest_' . time() . '@example.com',
@@ -32,7 +34,7 @@ class DebugTenantCreation extends Command
             $user->assignRole('business_owner');
             $this->info("Role assigned successfully!");
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error("Role assignment failed: " . $e->getMessage());
             $this->error($e->getTraceAsString());
         }

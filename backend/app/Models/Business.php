@@ -17,4 +17,14 @@ class Business extends Model
         'status',
         'role',
     ];
+
+    public function tenants()
+    {
+        return $this->hasMany(Tenant::class);
+    }
+
+    public function landlorduser()
+    {
+        return $this->belongsTo(LandlordUser::class);
+    }
 }

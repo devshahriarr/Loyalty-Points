@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 class AuthController extends Controller
 {
@@ -20,11 +21,11 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|min:6',
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-        
+
         $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
@@ -108,7 +109,7 @@ class AuthController extends Controller
         }
 
         // Check user first
-        $user = \App\Models\User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
         if (!$user) {
             return response()->json(['error' => 'Invalid credentials'], 401);
@@ -138,13 +139,13 @@ class AuthController extends Controller
     public function me()
     {
         // dd("me");
-        return response()->json(auth()->user());
+        return response()->json(auth('api')->user());
     }
 
     // logged out user and destroy auth token
     public function logout()
     {
-        auth()->logout();
+        auth('api')->logout();
 
         return response()->json([
             'message' => 'Successfully logged out'
@@ -154,13 +155,13 @@ class AuthController extends Controller
     public function refresh()
     {
         try {
-            $newToken = auth()->refresh();
+            $newToken = auth('api')->refresh();
             return response()->json([
                 'message' => 'Token refreshed successfully',
                 'token' => $newToken,
-                'user' => auth()->user()
+                'user' => auth('api')->user()
             ]);
-        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (TokenInvalidException $e) {
             return response()->json(['error' => 'Invalid token'], 401);
         }
     }
