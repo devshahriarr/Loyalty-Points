@@ -18,7 +18,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:100',
             'username' => 'required|string|max:100',
             'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:6|confirmed', // include password_confirmation
         ]);
 
         if ($validator->fails()) {
@@ -26,10 +26,10 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $request->input('name'),
+            'username' => $request->input('username'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
             'status' => 'active',
         ]);
         // dd("hello jihad");
@@ -58,12 +58,12 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'phone' => $request->phone,
-            'role' => 'business_owner',
+            'name' => $request->input('name'),
+            'username' => $request->input('username'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+            'phone' => $request->input('phone'),
+            // 'role' => 'business_owner',
             'status' => 'pending',
         ]);
 
@@ -118,8 +118,6 @@ class AuthController extends Controller
         if ($user->status !== 'active') {
             return response()->json(['error' => 'Your account is not approved yet.'], 403);
         }
-
-
 
         // Attempt to verify credentials and create a token
         if (!$token = JWTAuth::attempt($credentials)) {

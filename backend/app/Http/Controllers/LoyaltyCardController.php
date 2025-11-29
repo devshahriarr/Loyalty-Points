@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Branch;
+use App\Models\LoyaltyCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class BranchController extends Controller
+class LoyaltyCardController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $branches = Branch::all();
+        $loyaltyCards = LoyaltyCard::all();
 
         return response()->json([
             'status' => 'success',
-            'branches' => $branches,
+            'loyaltyCards' => $loyaltyCards,
         ]);
     }
 
@@ -27,21 +27,22 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $validated = Validator::make($request->all(), [
-            'name' => 'required',
-            'address' => 'required',
-            'latitude' => 'required',
-            'longitude' => 'required',
+            "name" => "required",
+            "design_json" => "required",
+            "reward_type" => "required",
+            "reward_threshold" => "required",
+            "reward_description" => "required",
         ]);
 
         if ($validated->fails()) {
             return response()->json($validated->errors(), 422);
         }
 
-        Branch::create($validated->validated());
+        LoyaltyCard::create($validated->validated());
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Branch created successfully',
+            'message' => 'Loyalty card created successfully',
         ]);
     }
 
@@ -50,11 +51,11 @@ class BranchController extends Controller
      */
     public function show(string $id)
     {
-        $branch = Branch::findOrFail($id);
+        $loyaltyCard = LoyaltyCard::findOrFail($id);
 
         return response()->json([
             'status' => 'success',
-            'branch' => $branch,
+            'loyaltyCard' => $loyaltyCard,
         ]);
     }
 
@@ -64,32 +65,34 @@ class BranchController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = Validator::make($request->all(), [
-            'name' => 'required',
-            'address' => 'required',
-            'latitude' => 'required',
-            'longitude' => 'required',
+            "name" => "required",
+            "design_json" => "required",
+            "reward_type" => "required",
+            "reward_threshold" => "required",
+            "reward_description" => "required",
         ]);
 
         if ($validated->fails()) {
             return response()->json($validated->errors(), 422);
         }
 
-        $branch = Branch::findOrFail($id);
+        $loyaltyCard = LoyaltyCard::findOrFail($id);
 
-        if (!$branch) {
+        if (!$loyaltyCard) {
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Branch not found',
+                'message' => 'Loyalty card not found',
             ], 404);
 
         }else{
 
-            $branch->update($validated->validated());
+            $loyaltyCard->update($validated->validated());
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Branch updated successfully',
+                'message' => 'Loyalty card updated successfully',
+                'loyaltyCard' => $loyaltyCard,
             ]);
 
         }
@@ -100,22 +103,22 @@ class BranchController extends Controller
      */
     public function destroy(string $id)
     {
-        $branch = Branch::findOrFail($id);
+        $loyaltyCard = LoyaltyCard::findOrFail($id);
 
-        if (!$branch) {
+        if (!$loyaltyCard) {
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Branch not found',
+                'message' => 'Loyalty card not found',
             ], 404);
 
         }else{
 
-            $branch->delete();
+            $loyaltyCard->delete();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Branch deleted successfully'
+                'message' => 'Loyalty card deleted successfully'
             ]);
 
         }
