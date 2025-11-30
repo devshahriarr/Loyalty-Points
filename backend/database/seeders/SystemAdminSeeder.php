@@ -35,7 +35,7 @@ class SystemAdminSeeder extends Seeder
             [
                 'name' => 'System Admin',
                 'password' => Hash::make('Admin@123'), // Default password (change later)
-                'role' => 'system_admin',
+                // 'role' => 'system_admin',
             ]
         );
 
