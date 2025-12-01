@@ -1,0 +1,550 @@
+{
+    "info": {
+        "name": "Loyalty Platform Backend API",
+        "_postman_id": "a1b2c3d4-e5f6-7890-abcd-123456789000",
+        "description": "Postman collection for System (Landlord) & Tenant APIs based on backend progress.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "System (Landlord) APIs",
+            "item": [
+                {
+                    "name": "Business Owner Registration",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"owner@example.com\",\n  \"password\": \"password123\",\n  \"business_name\": \"ABC Store\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/business-register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "business-register"
+                            ]
+                        },
+                        "description": "Register a new business owner (status = pending)."
+                    }
+                },
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"owner@example.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Me (Authenticated User)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "me"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "logout"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Refresh Token",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/refresh",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "refresh"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Admin Approve Business Owner",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/approve-business-owner/{{id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "approve-business-owner",
+                                "{{id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Business CRUD",
+                    "item": [
+                        {
+                            "name": "List Businesses",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{admin_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/api/business",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "business"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Create Business",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{admin_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"My Business\",\n  \"owner_id\": 1\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/business",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "business"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Password — Send OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{ \"email\": \"owner@example.com\" }"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/password/send-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "password",
+                                "send-otp"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Password — Verify OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{ \"email\": \"owner@example.com\", \"otp\": \"1234\" }"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/password/verify-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "password",
+                                "verify-otp"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Password — Reset",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"owner@example.com\",\n  \"otp\": \"1234\",\n  \"password\": \"newpassword123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/password/reset",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "password",
+                                "reset"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Tenant APIs",
+            "item": [
+                {
+                    "name": "Tenant Register User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"John\",\n  \"email\": \"user@tenant.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{tenant_base}}/api/register",
+                            "host": [
+                                "{{tenant_base}}"
+                            ],
+                            "path": [
+                                "api",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Tenant Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@tenant.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{tenant_base}}/api/login",
+                            "host": [
+                                "{{tenant_base}}"
+                            ],
+                            "path": [
+                                "api",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Tenant Info",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{tenant_base}}/api/tenant-info",
+                            "host": [
+                                "{{tenant_base}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tenant-info"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Test Tenant DB",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{tenant_base}}/api/tenant-test-db",
+                            "host": [
+                                "{{tenant_base}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tenant-test-db"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Branches",
+                    "item": [
+                        {
+                            "name": "List Branches",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{tenant_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{tenant_base}}/api/branches",
+                                    "host": [
+                                        "{{tenant_base}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "branches"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Create Branch",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{tenant_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{ \"name\": \"Main Branch\", \"address\": \"Dhaka\" }"
+                                },
+                                "url": {
+                                    "raw": "{{tenant_base}}/api/branches",
+                                    "host": [
+                                        "{{tenant_base}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "branches"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Customers",
+                    "item": [
+                        {
+                            "name": "List Customers",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{tenant_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{tenant_base}}/api/customers",
+                                    "host": [
+                                        "{{tenant_base}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "customers"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Loyalty Cards",
+                    "item": [
+                        {
+                            "name": "List Loyalty Cards",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{tenant_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{tenant_base}}/api/loyalty-cards",
+                                    "host": [
+                                        "{{tenant_base}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "loyalty-cards"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Customer Points",
+                    "item": [
+                        {
+                            "name": "List Customer Points",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{tenant_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{tenant_base}}/api/customer-points",
+                                    "host": [
+                                        "{{tenant_base}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "customer-points"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Offers",
+                    "item": [
+                        {
+                            "name": "List Offers",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{tenant_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{tenant_base}}/api/offers",
+                                    "host": [
+                                        "{{tenant_base}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "offers"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
