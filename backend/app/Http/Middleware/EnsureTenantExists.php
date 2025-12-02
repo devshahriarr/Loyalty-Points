@@ -18,21 +18,21 @@ class EnsureTenantExists
     public function handle(Request $request, Closure $next): Response
     {
         $host = $request->getHost();
-        
+
         // Extract subdomain from host
         $parts = explode('.', $host);
         if (count($parts) > 2) {
             $subdomain = $parts[0];
-            
+
             // Find tenant by domain
-            $tenant = Tenant::where('domain', $subdomain)->first();
-            
+            $tenant = Tenant::where('domain', "{$host}:8000")->first();
+
             if ($tenant) {
                 $tenant->makeCurrent();
                 return $next($request);
             }
         }
-        
+
         // If we reach here, no tenant was found or set
         return response()->json([
             'error' => 'No tenant found for this domain',
