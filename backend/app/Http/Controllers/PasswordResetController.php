@@ -88,47 +88,12 @@ class PasswordResetController extends Controller
         return response()->json(['message' => 'OTP verified successfully']);
     }
 
-//     public function verifyOtp(Request $request)
-// {
-//     $validated = Validator::make($request->all(), [
-//         'email' => 'required|email',
-//         'otp'   => 'required'
-//     ]);
-
-//     if ($validated->fails()) {
-//         return response()->json($validated->errors(), 422);
-//     }
-
-//     $record = PasswordOtp::where('email', $request->input('email'))->latest()->first();
-
-//     if (!$record) {
-//         return response()->json(['message' => 'OTP not found'], 404);
-//     }
-
-//     // যদি expires_at Carbon instance হয়:
-//     if ($record->expires_at->isPast()) {
-//         return response()->json(['message' => 'OTP expired'], 400);
-//     }
-
-//     // Use attribute access instead of input()
-//     // Hash::check(plainOtpFromRequest, hashedOtpFromDB)
-//     if (!Hash::check($request->input('otp'), $record->otp)) {
-//         return response()->json(['message' => 'Invalid OTP'], 400);
-//     }
-
-//     $record->verified = true;
-//     $record->save();
-
-//     return response()->json(['message' => 'OTP verified successfully']);
-// }
-
-
     // STEP 3: RESET PASSWORD
     public function resetPassword(Request $request)
     {
         $validated = Validator::make($request->all(), [
             'email'       => 'required|email',
-            'password' => 'required|min:6',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         if ($validated->fails()) {
