@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['api', 'tenant'])->group(function () {
+    // Route::middleware(['tenant', 'api'])->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
@@ -49,6 +50,5 @@ Route::middleware(['api', 'tenant'])->group(function () {
 
         // Offers routes
         Route::apiResource('offers', OfferController::class);
-
     });
 });
