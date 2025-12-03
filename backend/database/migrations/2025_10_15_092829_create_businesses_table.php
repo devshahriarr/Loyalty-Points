@@ -15,11 +15,17 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->string('slug', 150)->unique();
+            $table->string('phone', 20)->nullable();
             // $table->foreignId('owner_id')->nullable()->constrained('users')->onDelete('set null')->onUpdate('cascade');
+            $table->string('industry_type')->nullable();
+            $table->timestamp('registration_date')->nullable();
+            $table->integer('total_branches')->nullable();
+            $table->text('branch_locations')->nullable();
+            $table->enum('plan_type', ['starter', 'grow', 'business'])->nullable();
+            $table->enum('billing_status', ['active', 'disable'])->nullable();
             $table->unsignedBigInteger('owner_id')->nullable();
             $table->string('email', 100)->unique();
             $table->string('logo')->nullable();
-            $table->string('phone', 20)->nullable();
             $table->string('address')->nullable();
             $table->enum('status', ['active', 'inactive', 'pending'])->default('pending');
             $table->timestamps();

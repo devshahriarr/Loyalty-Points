@@ -69,4 +69,8 @@ class Tenant extends BaseTenant
     {
         return $this->belongsTo(Business::class);
     }
+
+    public function tenantPermissions(){
+        return $this->hasMany(TenantPermission::class);
+    }
 }

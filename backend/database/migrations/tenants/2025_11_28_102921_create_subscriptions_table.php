@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->string('package_name', 255);
+            $table->enum('package_name', ['starter', 'grow', 'business']);
             $table->string('amount', 255);
             $table->string('duration', 255);
             $table->timestamps();
