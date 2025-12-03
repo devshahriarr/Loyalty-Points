@@ -43,7 +43,7 @@ class AdminController extends Controller
         $user->save();
 
         // Create tenant for the business
-        $domain = Str::slug($business->name). ".127.0.0.1.nip.io:8000";
+        $domain = Str::slug($business->name). ".127.0.0.1:8000";
         $database = 'tenant_' . Str::slug($business->name, '_' . time());
 
         $tenant = Tenant::create([
@@ -58,8 +58,65 @@ class AdminController extends Controller
             'user' => $user,
             'business' => $business,
             'tenant' => $tenant,
-            'tenant_url' => 'http://' . $domain . '.' . config('app.domain')
-            // 'tenant_url' => 'http://' . $domain
+            // 'tenant_url' => 'http://' . $domain . '.' . config('app.domain')
+            'tenant_url' => 'http://' . $domain
         ]);
     }
+
+    public function getAllTenants()
+    {
+        $tenants = Tenant::with('business')->get();
+        return response()->json([
+            'status' => 'success',
+            'tenants' => $tenants,
+        ]);
+    }
+
+    public function getTenantsCount()
+    {
+        $tenantsCount = Tenant::count();
+        return response()->json([
+            'status' => 'success',
+            'tenantsCount' => $tenantsCount,
+        ]);
+    }
+
+    public function getActiveTenantsCount()
+    {
+        $activeTenantsCount = Business::with('tenants')->where('status', 'active')->count();
+        return response()->json([
+            'status' => 'success',
+            'activeTenantsCount' => $activeTenantsCount,
+        ]);
+    }
+
+    public function getActiveTenants()
+    {
+        $activeTenants = Business::with('tenants')->where('status', 'active')->get();
+        return response()->json([
+            'status' => 'success',
+            'activeTenants' => $activeTenants,
+        ]);
+    }
+
+    public function getInactiveTenants()
+    {
+        $inactiveTenants = Business::with('tenants')->where('status', 'inactive')->get();
+        return response()->json([
+            'status' => 'success',
+            'inactiveTenants' => $inactiveTenants,
+        ]);
+    }
+
+    public function getPendingTenants()
+    {
+        $pendingTenants = Business::with('tenants')->where('status', 'pending')->get();
+        return response()->json([
+            'status' => 'success',
+            'pendingTenants' => $pendingTenants,
+        ]);
+    }
+
+
+
 }

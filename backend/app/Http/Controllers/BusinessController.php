@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Validator;
 class BusinessController extends Controller
 {
     public function index(){
-        // dd("here");
         $all_business = Business::get();
-        // return view('business.index', compact('all_business'));
         return response()->json([
             'status' => 'success',
             'businesses' => $all_business,
