@@ -15,7 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null')->onUpdate('cascade');
             $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('set null')->onUpdate('cascade');
-            $table->timestamp('visited_at')->useCurrent();
+            $table->decimal('lat', 10, 7)->nullable();
+            $table->decimal('lng', 10, 7)->nullable();
+            $table->float('distance_m')->nullable();
+            $table->timestamp('detected_at')->nullable();
+            // $table->timestamp('visited_at')->useCurrent();
             $table->string('visit_source', 20);
             $table->timestamps();
         });
