@@ -18,7 +18,7 @@ class EnsureTenantExists
     public function handle(Request $request, Closure $next): Response
     {
         $host = $request->getHost();
-        dd("host", $host);
+        // dd("host", $host);
 
         // Extract subdomain from host
         $parts = explode('.', $host);
