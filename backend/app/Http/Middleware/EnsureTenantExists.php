@@ -22,7 +22,7 @@ class EnsureTenantExists
 
         // Extract subdomain from host
         $parts = explode('.', $host);
-        // dd(count($parts) > 2);
+        // dd($parts);
         if (count($parts) > 2) {
             $subdomain = $parts[0];
             // dd("subdomain", $subdomain);

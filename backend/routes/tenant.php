@@ -21,8 +21,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['api', 'tenant'])->group(function () {
-    // Route::middleware(['tenant', 'api'])->group(function () {
+// Route::middleware(['api', 'tenant'])->group(function () {
+    Route::middleware(['tenant', 'api'])->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
@@ -31,7 +31,7 @@ Route::middleware(['api', 'tenant'])->group(function () {
     Route::get('/tenant-test-db', [TenantTestController::class, 'testDatabase']);
 
     // Protected tenant endpoints
-    Route::middleware(['auth:api'])->group(function () {
+    Route::middleware(['auth:api', 'role:business_owner'])->group(function () {
 
         // Branch routes
         Route::apiResource('branches', BranchController::class);
