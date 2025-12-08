@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\GeolocationController;
+use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\PasswordResetController;
 
 // Business Registration and Management Routes
@@ -51,4 +52,5 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
 
 });
+
 

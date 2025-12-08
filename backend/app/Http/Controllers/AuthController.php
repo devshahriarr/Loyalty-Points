@@ -11,7 +11,7 @@ use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 class AuthController extends Controller
 {
-    // ✅ Register
+    // Register
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
