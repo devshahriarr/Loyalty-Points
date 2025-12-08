@@ -16,35 +16,33 @@ Route::post('/password/verify-otp', [PasswordResetController::class, 'verifyOtp'
 Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']);
 
 Route::middleware(['auth:api', 'role:system_admin'])->group(function () {
-    Route::post('/admin/approve-business-owner/{id}', [AdminController::class, 'approveBusinessOwner']);
 
-    Route::apiResource('business', BusinessController::class);
+    Route::prefix('/admin')->group(function () {
 
-    // Tenants routes
-    Route::get('/admin/get-all-tenants', [AdminController::class, 'getAllTenants']);
-    Route::get('/admin/get-tenants-count', [AdminController::class, 'getTenantsCount']);
-    Route::get('/admin/get-active-tenants-count', [AdminController::class, 'getActiveTenantsCount']);
-    Route::get('/admin/get-active-tenants', [AdminController::class, 'getActiveTenants']);
-    Route::get('/admin/get-inactive-tenants', [AdminController::class, 'getInactiveTenants']);
-    Route::get('/admin/get-pending-tenants', [AdminController::class, 'getPendingTenants']);
+        // landlord-level routes
+        Route::post('/approve-business-owner/{id}', [AdminController::class, 'approveBusinessOwner']);
+        Route::apiResource('business', BusinessController::class);
 
-    // Geolocation routes
-    Route::prefix('/admin/geolocation')->group(function () {
-
-        Route::get('/branches', [GeolocationController::class, 'allBranches']);
-
-        Route::post('/reverse', [GeolocationController::class, 'reverseGeocode']);
-
-        Route::post('/geocode', [GeolocationController::class, 'geocodeAddress']);
-
-        Route::post('/search', [GeolocationController::class, 'searchPlace']); // optional
-
-        Route::post('/nearest', [GeolocationController::class, 'nearestBranch']);
-
-        Route::post('/check-geofence', [GeolocationController::class, 'checkGeofence']);
-
-        Route::post('/branches/create-auto', [GeolocationController::class, 'createBranchAuto']);
+        Route::get('/get-all-tenants', [AdminController::class, 'getAllTenants']);
+        Route::get('/get-tenants-count', [AdminController::class, 'getTenantsCount']);
+        Route::get('/get-active-tenants-count', [AdminController::class, 'getActiveTenantsCount']);
+        Route::get('/get-active-tenants', [AdminController::class, 'getActiveTenants']);
+        Route::get('/get-inactive-tenants', [AdminController::class, 'getInactiveTenants']);
+        Route::get('/get-pending-tenants', [AdminController::class, 'getPendingTenants']);
     });
+
+});
+
+// Everything below MUST run inside tenant DB
+Route::prefix('/tenant/geolocation')->middleware(['auth:api','tenant'])->group(function () {
+
+    Route::get('/branches', [GeolocationController::class, 'allBranches']);
+    Route::post('/reverse', [GeolocationController::class, 'reverseGeocode']);
+    Route::post('/geocode', [GeolocationController::class, 'geocodeAddress']);
+    Route::post('/search', [GeolocationController::class, 'searchPlace']);
+    Route::post('/nearest', [GeolocationController::class, 'nearestBranch']);
+    Route::post('/check-geofence', [GeolocationController::class, 'checkGeofence']);
+    // Route::post('/branches/create-auto', [GeolocationController::class, 'createBranchAuto']);
 });
 
 Route::middleware('auth:api')->group(function () {
