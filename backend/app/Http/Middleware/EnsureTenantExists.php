@@ -28,7 +28,7 @@ class EnsureTenantExists
             // dd("subdomain", $subdomain);
 
             // Find tenant by domain
-            $tenant = Tenant::where('domain', "{$host}:8000")->first();
+            $tenant = Tenant::where('domain', $host)->first();
             // dd($tenant);
 
             if ($tenant) {

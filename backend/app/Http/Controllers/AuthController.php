@@ -30,16 +30,19 @@ class AuthController extends Controller
             'username' => $request->input('username'),
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
+            'phone' => $request->input('phone') ?? null,
             'status' => 'active',
         ]);
         // dd("hello jihad");
 
-        $token = JWTAuth::fromUser($user);
+        $user->assignRole('business_owner');
+
+        // $token = JWTAuth::fromUser($user);
 
         return response()->json([
-            'message' => 'User successfully registered',
+            'message' => 'Tenant successfully registered',
             'user' => $user,
-            'token' => $token
+            // 'token' => $token
         ], 201);
     }
 
