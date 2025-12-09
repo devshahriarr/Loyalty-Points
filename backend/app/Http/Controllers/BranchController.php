@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -11,13 +12,17 @@ class BranchController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $branches = Branch::all();
+        $host = $request->getHost();
+
+        $tenant = Tenant::where('domain', $host)->first();
+
+        $branches = Branch::where('tenant_id', $tenant->id)->get();
 
         return response()->json([
             'status' => 'success',
-            'branches' => $branches,
+            'branches' => $branches?? "No branches found",
         ]);
     }
 
@@ -37,7 +42,7 @@ class BranchController extends Controller
             return response()->json($validated->errors(), 422);
         }
 
-        Branch::create($validated->validated());
+        Branch::create($request->all());
 
         return response()->json([
             'status' => 'success',

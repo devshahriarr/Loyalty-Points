@@ -21,17 +21,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware(['api', 'tenant'])->group(function () {
+
+
 Route::middleware(['tenant', 'api'])->group(function () {
+
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-
     // Public tenant endpoints (no auth required)
-    Route::get('/tenant-info', [TenantTestController::class, 'info']);
-    Route::get('/tenant-test-db', [TenantTestController::class, 'testDatabase']);
+    // Route::get('/tenant-info', [TenantTestController::class, 'info']);
+    // Route::get('/tenant-test-db', [TenantTestController::class, 'testDatabase']);
 
     // Protected tenant endpoints
-    Route::middleware(['auth:api', 'role:business_owner'])->group(function () {
+    Route::middleware(['auth:api', 'tenant'])->group(function () {
 
         // Branch routes
         Route::apiResource('branches', BranchController::class);

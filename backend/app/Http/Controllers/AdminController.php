@@ -54,8 +54,19 @@ class AdminController extends Controller
             $user->business_id = $business->id;
             $user->status = 'active';
             $user->assignRole('business_owner');
-
             $user->save();
+
+            // 7. SWITCH to TENANT context
+            $tenant->makeCurrent();
+
+            // 8. CREATE BUSINESS OWNER inside tenant database
+            $tenantUser = \App\Models\User::create([
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email, // same email
+                'password' => $user->password, // same password (already hashed)
+                'status' => 'active',
+            ]);
 
             // $token = JWTAuth::fromUser($user);
 
@@ -64,6 +75,7 @@ class AdminController extends Controller
                 'user' => $user,
                 'business' => $business,
                 'tenant' => $tenant,
+                'tenant_user' => $tenantUser,
                 'tenant_url' =>"http://{$domain}:8000",
                 // 'token' => $token,
             ]);
@@ -71,7 +83,7 @@ class AdminController extends Controller
             return response()->json([
                 "status" => "error",
                 "message"=> "Server error. Please contact with support.",
-                // 'error' => $e->getMessage()
+                'error' => $e->getMessage()
             ], 500);
         }
     }
