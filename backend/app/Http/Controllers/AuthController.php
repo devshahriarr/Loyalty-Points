@@ -37,7 +37,6 @@ class AuthController extends Controller
             'phone' => $request->input('phone') ?? null,
             'status' => 'active',
         ]);
-        // dd("hello jihad");
 
         // Auto-create business
         $business = Business::create([
@@ -50,7 +49,7 @@ class AuthController extends Controller
 
 
         // Create tenant for the business
-        $domain = Str::slug($business->name). ".127.0.0.1.nip.io";
+        $domain = Str::slug($business->name) . ".127.0.0.1.nip.io";
         $database = 'tenant_' . Str::slug($business->name, '_' . time());
 
         $tenant = Tenant::create([
@@ -92,7 +91,15 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-
+        $business = Business::create([
+            // 'owner_id' => $user->id,
+            'name' => $request->name . "'s Business",
+            'slug' => Str::slug($request->name . '-business-' . time()),
+            'email' => $request->email,
+            'password' => $request->password,
+            'phone' => $request->phone ?? null,
+            'status' => 'active',
+        ]);
         // $user = LandlordUser::create([
         //     'name' => $request->input('name'),
         //     'username' => $request->input('username'),
@@ -104,7 +111,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Registration submitted successfully. Waiting for admin approval.',
-            'user' => $user ?? null,
+            'business' => $business ?? null,
         ], 201);
     }
 
@@ -163,7 +170,7 @@ class AuthController extends Controller
         // Return token + user info
         return response()->json([
             'message' => 'Login successful',
-            'domain'=> 'domain',
+            'domain' => 'domain',
             'token' => $token,
             'user' => $user,
         ]);

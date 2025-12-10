@@ -25,6 +25,7 @@ return new class extends Migration
             $table->enum('billing_status', ['active', 'disable'])->nullable();
             $table->unsignedBigInteger('owner_id')->nullable();
             $table->string('email', 100)->unique();
+            $table->string('password');
             $table->string('logo')->nullable();
             $table->string('address')->nullable();
             $table->enum('status', ['active', 'inactive', 'pending'])->default('pending');
