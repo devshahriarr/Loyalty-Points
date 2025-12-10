@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Spatie\Multitenancy\Models\Tenant;
@@ -46,10 +47,10 @@ class TenantTestController extends Controller
         try {
             // Try to get some data from the tenant database
             $tables = DB::connection('tenant')->select('SHOW TABLES');
-
+            $tenants = User::all();
             return response()->json([
                 'success' => true,
-                'tenant' => tenant()->toArray(),
+                'tenant' => $tenants->toArray(),
                 'tables' => $tables,
                 'database' => config('database.connections.tenant.database')
             ]);

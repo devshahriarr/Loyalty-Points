@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Spatie\Multitenancy\Models\Concerns\UsesLandlordConnection;
+
 class LandlordUser extends User
 {
+    use UsesLandlordConnection;
     protected $table = 'users';
     protected $connection = 'landlord';
     protected $guard_name = 'api';

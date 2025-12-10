@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\Tenant;
 use App\Models\VisitLog;
 use Illuminate\Http\Request;
 use App\Services\GoogleMapsService;
@@ -21,12 +22,29 @@ class GeolocationController extends Controller
      */
     public function allBranches()
     {
-        $branches = Branch::select('id', 'name', 'latitude', 'longitude')->get();
+        // $branches = Branch::select('id', 'name', 'latitude', 'longitude')->get();
 
-        return response()->json([
-            'status' => 'success',
-            'branches' => $branches
-        ]);
+        // return response()->json([
+        //     'status' => 'success',
+        //     'branches' => $branches
+        // ]);
+
+        $tenants = Tenant::all();
+        $results = [];
+
+        foreach ($tenants as $tenant) {
+            $tenant->makeCurrent();
+
+            $branches = Branch::select('id', 'name', 'latitude', 'longitude')->get();
+
+            $results[] = [
+                'tenant_id' => $tenant->id,
+                'tenant_name' => $tenant->name,
+                'branches' => $branches,
+            ];
+        }
+
+        return response()->json($results);
     }
 
     /**
@@ -203,51 +221,51 @@ class GeolocationController extends Controller
      * Create branch with automatic geocoding if lat/lng not provided
      * Request: { name, address (optional), lat (optional), lng (optional), other branch fields... }
      */
-    public function createBranchAuto(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'nullable|string',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            // add other branch fields validation as needed
-        ]);
+    // public function createBranchAuto(Request $request)
+    // {
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'address' => 'nullable|string',
+    //         'latitude' => 'nullable|numeric',
+    //         'longitude' => 'nullable|numeric',
+    //         // add other branch fields validation as needed
+    //     ]);
 
-        $data = $request->only(['name', 'address', /* other fields */]);
+    //     $data = $request->only(['name', 'address', /* other fields */]);
 
-        if (! $request->filled('latitude') || ! $request->filled('longitude')) {
-            if (! $request->filled('address')) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Either latitude/longitude or address must be provided'
-                ], 422);
-            }
+    //     if (! $request->filled('latitude') || ! $request->filled('longitude')) {
+    //         if (! $request->filled('address')) {
+    //             return response()->json([
+    //                 'status' => 'error',
+    //                 'message' => 'Either latitude/longitude or address must be provided'
+    //             ], 422);
+    //         }
 
-            // geocode
-            $geo = $this->google->geocodeAddress($request->address);
-            if (isset($geo['results'][0]['geometry']['location'])) {
-                $loc = $geo['results'][0]['geometry']['location'];
-                $data['latitude'] = $loc['lat'];
-                $data['longitude'] = $loc['lng'];
-            } else {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Unable to geocode address'
-                ], 422);
-            }
-        } else {
-            $data['latitude'] = (float)$request->latitude;
-            $data['longitude'] = (float)$request->longitude;
-        }
+    //         // geocode
+    //         $geo = $this->google->geocodeAddress($request->address);
+    //         if (isset($geo['results'][0]['geometry']['location'])) {
+    //             $loc = $geo['results'][0]['geometry']['location'];
+    //             $data['latitude'] = $loc['lat'];
+    //             $data['longitude'] = $loc['lng'];
+    //         } else {
+    //             return response()->json([
+    //                 'status' => 'error',
+    //                 'message' => 'Unable to geocode address'
+    //             ], 422);
+    //         }
+    //     } else {
+    //         $data['latitude'] = (float)$request->latitude;
+    //         $data['longitude'] = (float)$request->longitude;
+    //     }
 
-        // create branch (you said BranchController exists — adjust to use your logic)
-        $branch = Branch::create($data);
+    //     // create branch (you said BranchController exists — adjust to use your logic)
+    //     $branch = Branch::create($data);
 
-        return response()->json([
-            'status' => 'success',
-            'branch' => $branch
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'branch' => $branch
+    //     ]);
+    // }
 
     /* ----------------------
        Helper methods

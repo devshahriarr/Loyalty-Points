@@ -6,61 +6,86 @@ use Illuminate\Http\Request;
 use App\Models\LandlordUser as User;
 use App\Models\Business;
 use App\Models\Tenant;
+use Exception;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
     public function approveBusinessOwner($id)
     {
-        $user = User::where('id', $id)
-        ->where('status', 'pending')
-        ->first();
+        try {
+            $user = User::where('id', $id)
+            ->where('status', 'pending')
+            ->first();
 
-        // add graceful response
-        if (!$user) {
+            // add graceful response
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Pending business owner not found or already approved.'
+                ], 404);
+            }
+
+            // $user->makeCurrent();
+
+            // Auto-create business
+            $business = Business::create([
+                'owner_id' => $user->id,
+                'name' => $user->name . "'s Business",
+                'slug' => Str::slug($user->name . '-business-' . $user->id),
+                'email' => $user->email,
+                'status' => 'active',
+            ]);
+
+
+            // Create tenant for the business
+            $domain = Str::slug($business->name). ".127.0.0.1.nip.io";
+            $database = 'tenant_' . Str::slug($business->name, '_' . time());
+
+            $tenant = Tenant::create([
+                'name' => $business->name,
+                'domain' => $domain,
+                'database' => $database,
+                'business_id' => $business->id,
+            ]);
+
+            // Link user with business
+            // Update user status
+            // asign role
+            $user->business_id = $business->id;
+            $user->status = 'active';
+            $user->assignRole('business_owner');
+            $user->save();
+
+            // 7. SWITCH to TENANT context
+            $tenant->makeCurrent();
+
+            // 8. CREATE BUSINESS OWNER inside tenant database
+            $tenantUser = \App\Models\User::create([
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email, // same email
+                'password' => $user->password, // same password (already hashed)
+                'status' => 'active',
+            ]);
+
+            // $token = JWTAuth::fromUser($user);
+
             return response()->json([
-                'error' => 'Pending business owner not found or already approved.'
-            ], 404);
+                'message' => 'Business owner approved successfully!',
+                'user' => $user,
+                'business' => $business,
+                'tenant' => $tenant,
+                'tenant_user' => $tenantUser,
+                'tenant_url' =>"http://{$domain}:8000",
+                // 'token' => $token,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message"=> "Server error. Please contact with support.",
+                'error' => $e->getMessage()
+            ], 500);
         }
-        // asign role
-        $user->assignRole('business_owner');
-
-        // Update user status
-        $user->status = 'active';
-        $user->save();
-
-        // Auto-create business
-        $business = Business::create([
-            'owner_id' => $user->id,
-            'name' => $user->name . "'s Business",
-            'slug' => Str::slug($user->name . '-business-' . $user->id),
-            'email' => $user->email,
-            'status' => 'active',
-        ]);
-
-        // Link user with business
-        $user->business_id = $business->id;
-        $user->save();
-
-        // Create tenant for the business
-        $domain = Str::slug($business->name). ".127.0.0.1:8000";
-        $database = 'tenant_' . Str::slug($business->name, '_' . time());
-
-        $tenant = Tenant::create([
-            'name' => $business->name,
-            'domain' => $domain,
-            'database' => $database,
-            'business_id' => $business->id,
-        ]);
-
-        return response()->json([
-            'message' => 'Business owner approved successfully!',
-            'user' => $user,
-            'business' => $business,
-            'tenant' => $tenant,
-            // 'tenant_url' => 'http://' . $domain . '.' . config('app.domain')
-            'tenant_url' => 'http://' . $domain
-        ]);
     }
 
     public function getAllTenants()
