@@ -7,39 +7,129 @@ use App\Models\LandlordUser as User;
 use App\Models\Business;
 use App\Models\Tenant;
 use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
+    // public function approveBusinessOwner($id)
+    // {
+    //     try {
+    //         // $user = User::where('id', $id)
+    //         // ->where('status', 'pending')
+    //         // ->first();
+    //         $business = Business::findOrFail($id)->where('status', 'inactive')->first();
+
+    //         // add graceful response
+    //         if (!$business) {
+    //             return response()->json([
+    //                 'error' => 'Pending business owner not found or already approved.'
+    //             ], 404);
+    //         }
+
+    //         // $user->makeCurrent();
+
+    //         // Auto-create business
+    //         // $business = Business::create([
+    //         //     'owner_id' => $user->id,
+    //         //     'name' => $user->name . "'s Business",
+    //         //     'slug' => Str::slug($user->name . '-business-' . $user->id),
+    //         //     'email' => $user->email,
+    //         //     'status' => 'active',
+    //         // ]);
+
+
+
+    //         // Create tenant for the business
+    //         $domain = Str::slug($business->name) . ".127.0.0.1.nip.io";
+    //         $database = 'tenant_' . Str::slug($business->name, '_' . time());
+
+    //         $tenant = Tenant::create([
+    //             'name' => $business->name,
+    //             'domain' => $domain,
+    //             'database' => $database,
+    //             'business_id' => $business->id,
+    //         ]);
+
+
+    //         // Link user with business
+    //         // Update user status
+    //         // asign role
+
+
+    //         // 7. SWITCH to TENANT context
+    //         $tenant->makeCurrent();
+
+    //         $roles = ['system_admin', 'business_owner', 'staff', 'customer'];
+    //         foreach ($roles as $r) {
+    //             \Spatie\Permission\Models\Role::firstOrCreate(['name' => $r]);
+    //         }
+
+    //         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+    //         // 8. CREATE BUSINESS OWNER inside tenant database
+    //         $tenantUser = \App\Models\User::create([
+    //             'name' => $business->name,
+    //             'username' => Str::slug($business->name) . '-' . time(),
+    //             'email' => $business->email, // same email
+    //             'password' => Hash::make($business->password), // same password (already hashed)
+    //             'business_id' => $business->id,
+    //             'status' => 'active',
+    //         ]);
+
+
+    //         // assign by name (safer than id)
+    //         $tenantUser->assignRole('business_owner');
+    //         // $token = JWTAuth::fromUser($user);
+    //         $business->status = 'active';
+    //         $business->password == null;
+    //         $business->owner_id = $tenantUser->id;
+    //         $business->save();
+
+    //         return response()->json([
+    //             'message' => 'Business owner approved successfully!',
+    //             'user' => $tenantUser,
+    //             'business' => $business,
+    //             'tenant' => $tenant,
+    //             'tenant_url' => "http://{$domain}:8000",
+    //             // 'token' => $token,
+    //         ]);
+    //     } catch (Exception $e) {
+    //         return response()->json([
+    //             "status" => "error",
+    //             "message" => "Server error. Please contact with support.",
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     public function approveBusinessOwner($id)
     {
         try {
-            $user = User::where('id', $id)
-            ->where('status', 'pending')
-            ->first();
-
-            // add graceful response
-            if (!$user) {
+            // সঠিকভাবে ব্যবসা লোড করো — chaining bug ঠিক করা
+            $business = Business::where('id', $id)->where('status', 'inactive')->first();
+            if (!$business) {
                 return response()->json([
                     'error' => 'Pending business owner not found or already approved.'
                 ], 404);
             }
 
-            // $user->makeCurrent();
+            // Transaction: সব কাজ একসাথে, fail হলে rollback হবে
+            DB::beginTransaction();
 
-            // Auto-create business
-            $business = Business::create([
-                'owner_id' => $user->id,
-                'name' => $user->name . "'s Business",
-                'slug' => Str::slug($user->name . '-business-' . $user->id),
-                'email' => $user->email,
-                'status' => 'active',
-            ]);
+            // 1) Create Tenant (ensure domain/database unique-ish)
+            $baseSlug = Str::slug($business->name);
+            $timestamp = time();
+            $rand = substr(Str::random(6), 0, 6);
 
+            $domain = "{$baseSlug}.127.0.0.1.nip.io"; // local host pattern
+            // ensure domain uniqueness by suffixing timestamp+rand when necessary
+            if (\App\Models\Tenant::where('domain', $domain)->exists()) {
+                $domain = "{$baseSlug}-{$timestamp}-{$rand}.127.0.0.1.nip.io";
+            }
 
-            // Create tenant for the business
-            $domain = Str::slug($business->name). ".127.0.0.1.nip.io";
-            $database = 'tenant_' . Str::slug($business->name, '_' . time());
+            $database = 'tenant_' . Str::slug($business->name . '_' . $timestamp . '_' . $rand, '_');
 
             $tenant = Tenant::create([
                 'name' => $business->name,
@@ -48,42 +138,78 @@ class AdminController extends Controller
                 'business_id' => $business->id,
             ]);
 
-
-            // Link user with business
-            // Update user status
-            // asign role
-            $user->business_id = $business->id;
-            $user->status = 'active';
-            $user->assignRole('business_owner');
-            $user->save();
-
-            // 7. SWITCH to TENANT context
+            // 2) Switch to tenant context
             $tenant->makeCurrent();
 
-            // 8. CREATE BUSINESS OWNER inside tenant database
+            // OPTIONAL: If you need to run tenant migrations automatically, you could
+            // trigger them here (uncomment if your setup supports it):
+            // \Artisan::call('tenants:migrate', ['--tenant' => $tenant->id]);
+
+            // 3) Ensure Spatie roles exist inside tenant DB
+            $roles = ['system_admin', 'business_owner', 'staff', 'customer'];
+            foreach ($roles as $r) {
+                Role::firstOrCreate(['name' => $r]);
+            }
+
+            // 4) Clear Spatie permission cache (important!)
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+            // 5) Prepare password: avoid double-hash
+            $rawOrHashed = $business->password ?? null;
+            if (!$rawOrHashed) {
+                // If no password stored on business, generate a random one and consider notifying owner
+                $generated = Str::random(10);
+                $hashedPassword = Hash::make($generated);
+                // You might want to send $generated to the owner via email
+            } else {
+                // Detect if already hashed (bcrypt usually starts with $2y$ or $2a$ or argon prefix)
+                if (Str::startsWith($rawOrHashed, ['$2y$', '$2a$', '$argon'])) {
+                    $hashedPassword = $rawOrHashed; // already hashed
+                } else {
+                    $hashedPassword = Hash::make($rawOrHashed);
+                }
+            }
+
+            // 6) Create tenant user inside tenant DB
             $tenantUser = \App\Models\User::create([
-                'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email, // same email
-                'password' => $user->password, // same password (already hashed)
+                'name' => $business->name,
+                'username' => Str::slug($business->name) . '-' . $timestamp,
+                'email' => $business->email,
+                'password' => $hashedPassword,
+                'business_id' => $business->id,
                 'status' => 'active',
             ]);
 
-            // $token = JWTAuth::fromUser($user);
+            // 7) Assign role by name (safer). This will insert into model_has_roles.
+            $tenantUser->assignRole('business_owner');
+
+            // 8) Update landlord business record (back on landlord connection)
+            // If makeCurrent changed default connection, ensure we use landlord connection:
+            // Assuming Business model uses default connection; if not, you can force it:
+            // \App\Models\Business::on('landlord')->find($business->id) ...
+            $business->status = 'active';
+            $business->password = null; // set password to null safely
+            $business->owner_id = $tenantUser->id;
+            $business->save();
+
+            DB::commit();
 
             return response()->json([
                 'message' => 'Business owner approved successfully!',
-                'user' => $user,
+                'user' => $tenantUser,
                 'business' => $business,
                 'tenant' => $tenant,
-                'tenant_user' => $tenantUser,
-                'tenant_url' =>"http://{$domain}:8000",
-                // 'token' => $token,
-            ]);
+                'tenant_url' => "http://{$domain}:8000",
+            ], 201);
         } catch (Exception $e) {
+            DB::rollBack();
+
+            // Optional: if tenant DB was partially created, you may want to cleanup:
+            // try { $tenant && $tenant->delete(); } catch (\Throwable $t) {}
+
             return response()->json([
                 "status" => "error",
-                "message"=> "Server error. Please contact with support.",
+                "message" => "Server error. Please contact with support.",
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -142,7 +268,4 @@ class AdminController extends Controller
             'pendingTenants' => $pendingTenants,
         ]);
     }
-
-
-
 }

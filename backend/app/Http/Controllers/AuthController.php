@@ -82,7 +82,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
-            'username' => 'required|string|max:100',
+            // 'username' => 'required|string|max:100',
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|min:6|confirmed', // include password_confirmation
             'phone' => 'nullable|string|max:20',
@@ -98,7 +98,6 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => $request->password,
             'phone' => $request->phone ?? null,
-            'status' => 'active',
         ]);
         // $user = LandlordUser::create([
         //     'name' => $request->input('name'),

@@ -18,6 +18,7 @@ class Business extends Model
         'address',
         'status',
         'role',
+        'password',
     ];
 
 

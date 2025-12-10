@@ -17,7 +17,7 @@ return new class extends Migration
             // $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('set null')->onUpdate('cascade');
             $table->foreignId('loyalty_card_id')->nullable()->constrained('loyalty_cards')->onDelete('set null')->onUpdate('cascade');
-            $table->foreignId('tenant_id')->nullable()->constrained('tenants')->onDelete('set null')->onUpdate('cascade');
+            $table->unsignedBigInteger('tenant_id')->nullable();
             $table->unsignedInteger('total_points')->default(0);
             $table->unsignedInteger('total_visits')->default(0);
             $table->date('last_visit')->nullable();
