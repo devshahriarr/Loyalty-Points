@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
+
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -35,6 +36,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         // 'role',
+        'status',
     ];
 
     /**
@@ -60,7 +62,7 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-        public function getJWTIdentifier()
+    public function getJWTIdentifier()
     {
         return $this->getKey();
     }

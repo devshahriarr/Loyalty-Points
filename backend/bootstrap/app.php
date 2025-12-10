@@ -21,9 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-
-            // 'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
-            // 'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
         ]);
 
         // Tenant middleware group for Spatie Multitenancy
