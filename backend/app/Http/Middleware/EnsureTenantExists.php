@@ -32,6 +32,7 @@ class EnsureTenantExists
             // dd($tenant);
 
             if ($tenant) {
+                $request->header('tenantID', $tenant->id);
                 $tenant->makeCurrent();
                 return $next($request);
             }

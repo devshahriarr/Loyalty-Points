@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Business;
 use Illuminate\Http\Request;
 use App\Models\LandlordUser;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
@@ -36,13 +39,42 @@ class AuthController extends Controller
         ]);
         // dd("hello jihad");
 
+        // Auto-create business
+        $business = Business::create([
+            'owner_id' => $user->id,
+            'name' => $user->name . "'s Business",
+            'slug' => Str::slug($user->name . '-business-' . $user->id),
+            'email' => $user->email,
+            'status' => 'active',
+        ]);
+
+
+        // Create tenant for the business
+        $domain = Str::slug($business->name). ".127.0.0.1.nip.io";
+        $database = 'tenant_' . Str::slug($business->name, '_' . time());
+
+        $tenant = Tenant::create([
+            'name' => $business->name,
+            'domain' => $domain,
+            'database' => $database,
+            'business_id' => $business->id,
+        ]);
+
+        // Link user with business
+        // Update user status
+        // asign role
+        $user->business_id = $business->id;
+        $user->status = 'active';
         $user->assignRole('business_owner');
+        $user->save();
 
         // $token = JWTAuth::fromUser($user);
 
         return response()->json([
             'message' => 'Tenant successfully registered',
-            'user' => $user,
+            'business_owner' => $user,
+            'business' => $business,
+            'tenant' => $tenant,
             // 'token' => $token
         ], 201);
     }
@@ -61,18 +93,18 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $user = LandlordUser::create([
-            'name' => $request->input('name'),
-            'username' => $request->input('username'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-            'phone' => $request->input('phone'),
-            'status' => 'pending',
-        ]);
+        // $user = LandlordUser::create([
+        //     'name' => $request->input('name'),
+        //     'username' => $request->input('username'),
+        //     'email' => $request->input('email'),
+        //     'password' => Hash::make($request->input('password')),
+        //     'phone' => $request->input('phone'),
+        //     'status' => 'pending',
+        // ]);
 
         return response()->json([
             'message' => 'Registration submitted successfully. Waiting for admin approval.',
-            'user' => $user,
+            'user' => $user ?? null,
         ], 201);
     }
 
@@ -127,9 +159,11 @@ class AuthController extends Controller
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
+
         // Return token + user info
         return response()->json([
             'message' => 'Login successful',
+            'domain'=> 'domain',
             'token' => $token,
             'user' => $user,
         ]);

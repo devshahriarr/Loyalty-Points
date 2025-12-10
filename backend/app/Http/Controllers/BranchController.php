@@ -90,7 +90,7 @@ class BranchController extends Controller
 
         }else{
 
-            $branch->update($validated->validated());
+            $branch->update($request->all());
 
             return response()->json([
                 'status' => 'success',

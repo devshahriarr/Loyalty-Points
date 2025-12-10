@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesLandlordConnection;
 
 class Business extends Model
 {
+    use UsesLandlordConnection;
     protected $fillable = [
         'name',
         'slug',
@@ -18,10 +20,6 @@ class Business extends Model
         'role',
     ];
 
-    public function tenants()
-    {
-        return $this->hasMany(Tenant::class);
-    }
 
     public function landlorduser()
     {
