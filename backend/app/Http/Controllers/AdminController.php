@@ -48,6 +48,7 @@ class AdminController extends Controller
                 'business_id' => $business->id,
             ]);
 
+
             // Link user with business
             // Update user status
             // asign role
