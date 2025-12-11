@@ -26,4 +26,9 @@ class Customer extends Model
     {
         return $this->hasMany(CustomerPoint::class);
     }
+
+    public function analytics()
+    {
+        return $this->hasMany(CustomerAnalytics::class);
+    }
 }

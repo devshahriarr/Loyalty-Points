@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->string('manager_name', 255);
             // $table->unsignedBigInteger('business_id')->nullable();
             // $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
             $table->string('address');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
+            $table->string('manager_name', 255);
+            $table->integer('staffs')->nullable();
             $table->unsignedBigInteger('tenant_id')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();

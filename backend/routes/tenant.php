@@ -2,11 +2,12 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\CustomerAnalyticsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPointController;
 use App\Http\Controllers\LoyaltyCardController;
 use App\Http\Controllers\OfferController;
-use App\Http\Controllers\TenantTestController;
+// use App\Http\Controllers\TenantTestController;
 use App\Http\Controllers\UserActivityController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,26 +30,31 @@ Route::middleware(['tenant', 'api'])->group(function () {
     // Route::get('/tenant-info', [TenantTestController::class, 'info']);
     // Route::get('/tenant-test-db', [TenantTestController::class, 'testDatabase']);
 
+    Route::get('/analytics/customers', [CustomerAnalyticsController::class, 'index']); // list
+    Route::post('/analytics/recalc-all', [CustomerAnalyticsController::class, 'recalcAll']);
+
     // Protected tenant endpoints
     // Route::middleware(['auth:api', 'role:business_owner'])->group(function () {
-    Route::middleware(['auth:api'])->group(function () {
+        Route::middleware(['auth:api'])->group(function () {
 
-        // Branch routes
-        Route::apiResource('branches', BranchController::class);
+            // Branch routes
+            Route::apiResource('branches', BranchController::class);
 
-        // Customer routes
-        Route::apiResource('customers', CustomerController::class);
+            // Customer routes
+            Route::apiResource('customers', CustomerController::class);
 
-        // Loyalty card routes
-        Route::apiResource('loyalty-cards', LoyaltyCardController::class);
+            // Loyalty card routes
+            Route::apiResource('loyalty-cards', LoyaltyCardController::class);
 
-        // Customer points routes
-        Route::apiResource('customer-points', CustomerPointController::class);
+            // Customer points routes
+            Route::apiResource('customer-points', CustomerPointController::class);
 
-        // Visit logs routes
-        Route::apiResource('user-activities', UserActivityController::class);
+            // Visit logs routes
+            Route::apiResource('user-activities', UserActivityController::class);
 
-        // Offers routes
-        Route::apiResource('offers', OfferController::class);
-    });
+            // Offers routes
+            Route::apiResource('offers', OfferController::class);
+
+            Route::post('/analytics/recalc/{customerId}', [CustomerAnalyticsController::class, 'recalcCustomer']);
+        });
 });

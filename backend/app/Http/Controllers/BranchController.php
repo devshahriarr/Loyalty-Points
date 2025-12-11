@@ -9,16 +9,21 @@ use Illuminate\Support\Facades\Validator;
 
 class BranchController extends Controller
 {
+    protected $host = "";
+    protected $tenant;
+
+    public function __construct(Request $request){
+        $this->host = $request->getHost();
+        $tenant = Tenant::where("domain", $this->host)->first();
+        $this->tenant = $tenant;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $host = $request->getHost();
-
-        $tenant = Tenant::where('domain', $host)->first();
-
-        $branches = Branch::where('tenant_id', $tenant->id)->get();
+        $branches = Branch::where('tenant_id', $this->tenant->id)->get();
 
         return response()->json([
             'status' => 'success',
@@ -34,15 +39,18 @@ class BranchController extends Controller
         $validated = Validator::make($request->all(), [
             'name' => 'required',
             'address' => 'required',
-            'latitude' => 'required',
-            'longitude' => 'required',
+            'manager_name'=> 'required|string|max:255',
+            'staffs'=> 'required|integer',
+            'tenant_id'=> 'required|integer|exists:tenants,id',
+            // 'latitude' => 'required',
+            // 'longitude' => 'required',
         ]);
 
         if ($validated->fails()) {
             return response()->json($validated->errors(), 422);
         }
 
-        Branch::create($request->all());
+        Branch::create($request->only('name','address','manager_name','staffs','tenant_id','phone','email','latitude','longitude'));
 
         return response()->json([
             'status' => 'success',
@@ -55,7 +63,7 @@ class BranchController extends Controller
      */
     public function show(string $id)
     {
-        $branch = Branch::findOrFail($id);
+        $branch = Branch::where('tenant_id', $this->tenant->id)->findOrFail($id);
 
         return response()->json([
             'status' => 'success',
@@ -71,15 +79,17 @@ class BranchController extends Controller
         $validated = Validator::make($request->all(), [
             'name' => 'required',
             'address' => 'required',
-            'latitude' => 'required',
-            'longitude' => 'required',
+            'manager_name'=> 'required',
+            'staffs'=> 'required',
+            // 'latitude' => 'required',
+            // 'longitude' => 'required',
         ]);
 
         if ($validated->fails()) {
             return response()->json($validated->errors(), 422);
         }
 
-        $branch = Branch::findOrFail($id);
+        $branch = Branch::where('tenant_id', $this->tenant->id)->findOrFail($id);
 
         if (!$branch) {
 
@@ -90,11 +100,12 @@ class BranchController extends Controller
 
         }else{
 
-            $branch->update($request->all());
+            $branch->update($request->only('name','address','manager_name','staffs','phone','email','latitude','longitude'));
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Branch updated successfully',
+                'branch' => $branch
             ]);
 
         }
@@ -105,7 +116,7 @@ class BranchController extends Controller
      */
     public function destroy(string $id)
     {
-        $branch = Branch::findOrFail($id);
+        $branch = Branch::where('tenant_id', $this->tenant->id)->findOrFail($id);
 
         if (!$branch) {
 

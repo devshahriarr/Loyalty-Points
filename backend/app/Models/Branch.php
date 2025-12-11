@@ -15,7 +15,8 @@ class Branch extends Model
         'phone',
         'email',
         'manager_name',
-        'status',
+        'staffs',
         'tenant_id',
+        'status',
     ];
 }
