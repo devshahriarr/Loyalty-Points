@@ -63,44 +63,53 @@ class CustomerReviewController extends Controller
     // Create new Review
     public function store(Request $request)
     {
-        $validated = Validator::make($request->all(), [
-            'customer_id'  => 'nullable|exists:customers,id',
-            'tenant_id'    => 'nullable|exists:tenants,id',
-            'review_text'  => 'required|string',
-            'rating'       => 'required|integer|min:1|max:5',
-            'visited_at'   => 'nullable|date'
-        ]);
+        try {
+            $validated = Validator::make($request->all(), [
+                'customer_id'  => 'nullable|exists:customers,id',
+                'tenant_id'    => 'nullable|exists:tenants,id',
+                'review_text'  => 'required|string',
+                'rating'       => 'required|integer|min:1|max:5',
+                'visited_at'   => 'nullable|date'
+            ]);
 
-        $review = CustomerReview::create($validated->validated());
-        // $review = CustomerReview::create([
-        //     'customer_id' => $validated['customer_id'],
-        // ]);
+            $review = CustomerReview::create($validated->validated());
+            // $review = CustomerReview::create([
+            //     'customer_id' => $validated['customer_id'],
+            // ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Review created successfully',
-            'data' => $review
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Review created successfully',
+                'data' => $review
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message'=> 'Server error. Please contact with support.',
+                // 'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // Update existing review
     public function update(Request $request, $id)
     {
-        $validated = Validator::make($request->all(), [
-            'review_text' => 'sometimes|string',
-            'rating'      => 'sometimes|integer|min:1|max:5',
-            'visited_at'  => 'sometimes|date',
-        ]);
+        try {
+            $validated = Validator::make($request->all(), [
+                'review_text' => 'sometimes|string',
+                'rating'      => 'sometimes|integer|min:1|max:5',
+                'visited_at'  => 'sometimes|date',
+            ]);
 
-        if ($validated->fails()) {
-            return response()->json($validated->errors(), 422);
-        }
+            if ($validated->fails()) {
+                return response()->json($validated->errors(), 422);
+            }
 
-        $review = CustomerReview::findOrFail($id);
-        // $review = CustomerReview::where('tenant_id', $this->tenant->id)
-        // ->findOrFail($id);
+            $review = CustomerReview::findOrFail($id);
+            // $review = CustomerReview::where('tenant_id', $this->tenant->id)
+            // ->findOrFail($id);
 
-        if ($review) {
             $review->update($validated->validated());
 
             return response()->json([
@@ -108,23 +117,24 @@ class CustomerReviewController extends Controller
                 'message' => 'Review updated',
                 'data' => $review
             ]);
-        } else {
+
+        } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Review not found',
-            ], 404);
+                'message'=> 'Server error. Please contact with support.',
+                // 'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     // Show/Hide toggle
     public function toggleVisibility($id)
     {
-        // $review = CustomerReview::where('tenant_id', $this->tenant->id)
-        // ->findOrFail($id);
+        try {
+            // $review = CustomerReview::where('tenant_id', $this->tenant->id)
+            // ->findOrFail($id);
 
-        $review = CustomerReview::findOrFail($id);
-
-        if ($review) {
+            $review = CustomerReview::findOrFail($id);
 
             $review->visible = !$review->visible;
             $review->save();
@@ -134,35 +144,36 @@ class CustomerReviewController extends Controller
                 'visible' => $review->visible
             ]);
 
-        } else {
+        } catch (Exception $e){
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Review not found'
-            ]);
+                'message'=> 'Server error. Please contact with support.',
+                'error' => $e->getMessage()
+            ], 500);
 
         }
     }
 
     public function destroy($id)
     {
-        $review = CustomerReview::where('tenant_id', $this->tenant->id)
-        ->findOrFail($id);
+        try {
+            $review = CustomerReview::where('tenant_id', $this->tenant->id)
+            ->findOrFail($id);
 
-        if ($review->delete()) {
+            $review->delete();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Review deleted'
             ]);
 
-        } else {
-
+        } catch (Exception $e) {
             return response()->json([
-            'status'=> 'error',
-            'message' => 'Review not found'
-            ]);
-
+                'status' => 'error',
+                'message'=> 'Server error. Please contact with support.',
+                // 'error' => $e->getMessage()
+            ], 500);
         }
     }
 }
