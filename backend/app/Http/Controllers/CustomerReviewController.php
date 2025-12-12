@@ -93,8 +93,10 @@ class CustomerReviewController extends Controller
     // Show/Hide toggle
     public function toggleVisibility($id)
     {
-        $review = CustomerReview::where('tenant_id', "21")
-        ->findOrFail($id);
+        // $review = CustomerReview::where('tenant_id', $this->tenant->id)
+        // ->findOrFail($id);
+
+        $review = CustomerReview::findOrFail($id);
 
         $review->visible = !$review->visible;
         $review->save();
