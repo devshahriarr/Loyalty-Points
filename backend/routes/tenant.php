@@ -5,6 +5,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CustomerAnalyticsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPointController;
+use App\Http\Controllers\CustomerReviewController;
 use App\Http\Controllers\LoyaltyCardController;
 use App\Http\Controllers\OfferController;
 // use App\Http\Controllers\TenantTestController;
@@ -33,6 +34,14 @@ Route::middleware(['tenant', 'api'])->group(function () {
     Route::get('/analytics/customers', [CustomerAnalyticsController::class, 'index']); // list
     Route::post('/analytics/recalc-all', [CustomerAnalyticsController::class, 'recalcAll']);
 
+    Route::get('/reviews', [CustomerReviewController::class, 'index']);
+    Route::post('/reviews', [CustomerReviewController::class, 'store']);
+    Route::put('/reviews/{id}', [CustomerReviewController::class, 'update']);
+    Route::delete('/reviews/{id}', [CustomerReviewController::class, 'destroy']);
+
+    // SHOW/HIDE toggle
+    Route::post('/reviews/{id}/toggle', [CustomerReviewController::class, 'toggleVisibility']);
+
     // Protected tenant endpoints
     // Route::middleware(['auth:api', 'role:business_owner'])->group(function () {
         Route::middleware(['auth:api'])->group(function () {
@@ -41,7 +50,7 @@ Route::middleware(['tenant', 'api'])->group(function () {
             Route::apiResource('branches', BranchController::class);
 
             // Customer routes
-            Route::apiResource('customers', CustomerController::class);
+            // Route::apiResource('customers', CustomerController::class);
 
             // Loyalty card routes
             Route::apiResource('loyalty-cards', LoyaltyCardController::class);
@@ -56,5 +65,11 @@ Route::middleware(['tenant', 'api'])->group(function () {
             Route::apiResource('offers', OfferController::class);
 
             Route::post('/analytics/recalc/{customerId}', [CustomerAnalyticsController::class, 'recalcCustomer']);
+
+            // Customer Reviews routes
+            // Route::get('/reviews', [CustomerReviewController::class, 'index']);
+            // Route::post('/reviews', [CustomerReviewController::class, 'store']);
+            // Route::put('/reviews/{id}', [CustomerReviewController::class, 'update']);
+            // Route::delete('/reviews/{id}', [CustomerReviewController::class, 'destroy']);
         });
 });

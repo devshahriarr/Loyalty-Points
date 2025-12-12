@@ -5,6 +5,7 @@ use Illuminate\Console\Command;
 use App\Models\Tenant;
 use App\Models\Customer;
 use App\Services\CustomerAnalyticsService;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 
 class RecalculateCustomerAnalytics extends Command
@@ -66,5 +67,15 @@ class RecalculateCustomerAnalytics extends Command
 
         // leave tenant
         $tenant->forget();
+    }
+
+    public function schedule(Schedule $schedule): void
+    {
+        $tenants = Tenant::all();
+        if ($tenants) {
+            foreach ($tenants as $t) {
+                $schedule->command('analytics:recalculate --tenant=' . $t->id)->dailyAt('02:00');
+            }
+        }
     }
 }
