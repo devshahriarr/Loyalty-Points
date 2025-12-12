@@ -158,8 +158,10 @@ class CustomerReviewController extends Controller
     public function destroy($id)
     {
         try {
-            $review = CustomerReview::where('tenant_id', $this->tenant->id)
-            ->findOrFail($id);
+            // $review = CustomerReview::where('tenant_id', $this->tenant->id)
+            // ->findOrFail($id);
+
+            $review = CustomerReview::findOrFail($id);
 
             $review->delete();
 
