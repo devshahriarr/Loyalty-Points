@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use App\Models\Tenant;
-use App\Models\LandlordUser;
+use App\Models\Tenant\User as TenantUser;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 class BusinessController extends Controller
 {
@@ -49,18 +47,6 @@ class BusinessController extends Controller
                 $registration_date = $carbon_date->format('Y-m-d H:i:s');
             }
 
-            // $user = LandlordUser::create([
-            //     "name" => $request->name,
-            //     "username" => $request->name."-".Str::random(3),
-            //     "email" => $request->email,
-            //     "password" => Hash::make($request->password),
-            //     "phone" => $request->phone ?? null,
-            //     "address" => $request->address,
-            //     "status" => "active",
-            // ]);
-
-            // $user->assignRole("business_owner");
-
             $business = Business::create([
                 // "owner_id" => $user->id,
                 'name' => $request->name . "'s Business",
@@ -91,17 +77,7 @@ class BusinessController extends Controller
 
             $tenant->makeCurrent();
 
-            // Create tenant roles
-            // app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-            // foreach (['business_owner', 'staff', 'customer'] as $role) {
-            //     Role::firstOrCreate([
-            //         'name' => $role,
-            //         'guard_name' => 'tenant',
-            //     ]);
-            // }
-
-            $tenantUser = User::create([
+            $tenantUser = TenantUser::create([
                 "name" => $request->name,
                 "username" => $request->name."-".Str::random(3),
                 "email" => $request->email,

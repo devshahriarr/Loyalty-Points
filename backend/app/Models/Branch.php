@@ -17,6 +17,8 @@ class Branch extends Model
         'manager_name',
         'staffs',
         'tenant_id',
+        'latitude',
+        'longitude',
         'status',
     ];
 }

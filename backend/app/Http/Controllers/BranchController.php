@@ -41,7 +41,7 @@ class BranchController extends Controller
             'address' => 'required',
             'manager_name'=> 'required|string|max:255',
             'staffs'=> 'required|integer',
-            'tenant_id'=> 'required|integer|exists:tenants,id',
+            // 'tenant_id'=> 'required|integer|exists:tenants,id',
             // 'latitude' => 'required',
             // 'longitude' => 'required',
         ]);
@@ -50,11 +50,22 @@ class BranchController extends Controller
             return response()->json($validated->errors(), 422);
         }
 
-        Branch::create($request->only('name','address','manager_name','staffs','tenant_id','phone','email','latitude','longitude'));
+        $branch = Branch::create([
+            'name' => $request->input('name'),
+            'address' => $request->input('address'),
+            'manager_name' => $request->input('manager_name'),
+            'staffs' => $request->input('staffs'),
+            'tenant_id' => $this->tenant->id?? null,
+            'phone' => $request->input('phone') ?? null,
+            'email' => $request->input('email') ?? null,
+            'latitude' => $request->input('latitude') ?? null,
+            'longitude =>' => $request->input('longitude') ?? null,
+        ]);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Branch created successfully',
+            'branch' => $branch
         ]);
     }
 

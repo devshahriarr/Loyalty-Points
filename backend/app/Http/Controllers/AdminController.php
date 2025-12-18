@@ -126,7 +126,7 @@ class AdminController extends Controller
 
             $domain = "{$baseSlug}.127.0.0.1.nip.io"; // local host pattern
             // ensure domain uniqueness by suffixing timestamp+rand when necessary
-            if (\App\Models\Tenant::where('domain', $domain)->exists()) {
+            if (Tenant::where('domain', $domain)->exists()) {
                 $domain = "{$baseSlug}-{$timestamp}-{$rand}.127.0.0.1.nip.io";
             }
 

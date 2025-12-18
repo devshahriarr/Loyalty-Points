@@ -6,6 +6,7 @@ use App\Models\Business;
 use Illuminate\Http\Request;
 use App\Models\LandlordUser;
 use App\Models\Tenant;
+use App\Models\Tenant\User as TenantUser;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -114,64 +115,27 @@ class AuthController extends Controller
         ], 201);
     }
 
-
-    // ✅ Login
-    // public function login(Request $request)
-    // {
-    //     $credentials = $request->only('email', 'password');
-
-    //     try {
-    //         if (!$token = JWTAuth::attempt($credentials)) {
-    //             return response()->json(['error' => 'Invalid credentials'], 401);
-    //         }
-    //     } catch (JWTException $e) {
-    //         return response()->json(['error' => 'Could not create token'], 500);
-    //     }
-
-    //     return response()->json([
-    //         'token' => $token,
-    //         'user' => auth()->user()
-    //     ]);
-    // }
-
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
-        // Validation
-        $validator = Validator::make($credentials, [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
-        ]);
+        $admin = User::where('email', $credentials['email'])->first();
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+        if (!$admin->hasRole('system_admin')) {
+            return response()->json([
+                'message' => 'You are not a system admin',
+            ], 403);
         }
 
-        // Check user first
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
+        if (! $token = auth('api')->attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
-        // Prevent login if user not active
-        if ($user->status !== 'active') {
-            return response()->json(['error' => 'Your account is not approved yet.'], 403);
-        }
-
-        // Attempt to verify credentials and create a token
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Invalid credentials'], 401);
-        }
-
-
-        // Return token + user info
         return response()->json([
-            'message' => 'Login successful',
-            'domain' => 'domain',
+            'status' => 'success',
+            'message' => 'Super admin login successful',
             'token' => $token,
-            'user' => $user,
+            'user' => auth('api')->user(),
         ]);
     }
 
@@ -179,30 +143,143 @@ class AuthController extends Controller
     public function me()
     {
         // dd("me");
-        return response()->json(auth('api')->user());
-    }
+        $user = auth('api')->user();
+        $admin = User::where('email', $user->email)->first();
 
-    // logged out user and destroy auth token
-    public function logout()
-    {
-        auth('api')->logout();
+        if (!$admin->hasRole('system_admin')) {
+            return response()->json([
+                'message' => 'You are not a system admin',
+            ], 403);
+        }
 
         return response()->json([
-            'message' => 'Successfully logged out'
+            'status'=> 'success',
+            'user' => $admin,
         ]);
     }
 
     public function refresh()
     {
         try {
-            $newToken = auth('api')->refresh();
+            $user = auth('api')->user();
+            $admin = User::where('id', $user->id)->first();
+
+            if ($admin->hasRole('system_admin')) {
+                $newToken = auth('api')->refresh();
+                return response()->json([
+                    'message' => 'Token refreshed successfully',
+                    'token' => $newToken,
+                    'user' => auth('api')->user()
+                ]);
+            }
+
             return response()->json([
-                'message' => 'Token refreshed successfully',
-                'token' => $newToken,
-                'user' => auth('api')->user()
-            ]);
+                'message' => 'You are not a system admin',
+            ], 403);
         } catch (TokenInvalidException $e) {
             return response()->json(['error' => 'Invalid token'], 401);
+        }
+    }
+
+    public function adminLogout()
+    {
+        $user = auth('api')->user();
+        $admin = User::where('id', $user->id)->first();
+
+        if (!$admin) {
+            return response()->json([
+                'message'=> 'Unauthenticated'
+            ], 401);
+        }
+
+        if (!$admin->hasRole('system_admin')) {
+            return response()->json([
+                'message'=> 'You are not a system admin'
+            ], 403);
+
+        }else{
+
+            auth('api')->logout();
+
+            return response()->json([
+                'message' => 'Successfully logged out'
+            ]);
+        }
+    }
+
+    // logged out user and destroy auth token
+    public function ownerLogout()
+    {
+        $businessUser = auth('tenant')->user();
+
+        if (!$businessUser) {
+            return response()->json([
+                'message'=> 'Unauthenticated'
+            ], 401);
+        }
+
+        if ($businessUser->role !== 'business_owner') {
+            return response()->json([
+                'message'=> 'You are not a business owner'
+            ], 403);
+
+        }else{
+
+            auth('tenant')->logout();
+
+            return response()->json([
+                'message' => 'Successfully logged out'
+            ]);
+        }
+    }
+
+    public function staffLogout()
+    {
+        $staff = auth('tenant')->user();
+
+        if (!$staff) {
+            return response()->json([
+                'message'=> 'Unauthenticated'
+            ], 401);
+        }
+
+        if ($staff->role !== 'staff') {
+            return response()->json([
+                'message'=> 'You are not a staff'
+            ], 403);
+
+        }else{
+
+            auth('tenant')->logout();
+
+            return response()->json([
+                'message' => 'Successfully logged out'
+            ]);
+        }
+    }
+
+    public function customerLogout()
+    {
+        $customer = auth('tenant')->user();
+
+        if (!$customer) {
+            return response()->json([
+                'message'=> 'Unauthenticated'
+            ], 401);
+        }
+
+        if ($customer->role !== 'customer') {
+            return response()->json([
+                'message'=> 'You are not a customer'
+            ], 403);
+
+        }else{
+
+            auth('tenant')->logout();
+
+            return response()->json([
+                'message' => 'Successfully logged out'
+            ]);
         }
     }
 }
