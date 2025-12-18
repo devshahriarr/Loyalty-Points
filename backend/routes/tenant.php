@@ -8,6 +8,7 @@ use App\Http\Controllers\CustomerPointController;
 use App\Http\Controllers\CustomerReviewController;
 use App\Http\Controllers\LoyaltyCardController;
 use App\Http\Controllers\OfferController;
+use App\Http\Controllers\RewardController;
 // use App\Http\Controllers\TenantTestController;
 use App\Http\Controllers\UserActivityController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,16 @@ Route::middleware(['tenant', 'api'])->group(function () {
 
     // SHOW/HIDE toggle
     Route::post('/reviews/{id}/toggle', [CustomerReviewController::class, 'toggleVisibility']);
+
+    // Reward Module Endpoints
+    Route::get('/rewards', [RewardController::class, 'index']);
+    Route::post('/rewards', [RewardController::class, 'store']);
+    Route::put('/rewards/{id}', [RewardController::class, 'update']);
+    Route::delete('/rewards/{id}', [RewardController::class, 'destroy']);
+
+    // Active/Inactive toggle
+    Route::post('/rewards/{id}/toggle', [RewardController::class, 'toggle']);
+
 
     // Protected tenant endpoints
     // Route::middleware(['auth:api', 'role:business_owner'])->group(function () {

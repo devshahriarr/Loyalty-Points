@@ -25,7 +25,7 @@ class CustomerReviewController extends Controller
     {
         try {
             $reviews = CustomerReview::with('customer')
-                ->where('tenant_id', $this->tenant->id)
+                // ->where('tenant_id', $this->tenant->id)
                 ->orderByDesc('created_at')
                 ->paginate(12);
 
@@ -53,7 +53,7 @@ class CustomerReviewController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message'=> 'Server error. Please contact with support.',
+                'message'=> 'Something went error. Please contact with support.',
                 // 'error' => $e->getMessage()
             ], 500);
         }
@@ -65,8 +65,8 @@ class CustomerReviewController extends Controller
     {
         try {
             $validated = Validator::make($request->all(), [
-                'customer_id'  => 'nullable|exists:customers,id',
-                'tenant_id'    => 'nullable|exists:tenants,id',
+                // 'customer_id'  => 'nullable|exists:customers,id',
+                // 'tenant_id'    => 'nullable|exists:tenants,id',
                 'review_text'  => 'required|string',
                 'rating'       => 'required|integer|min:1|max:5',
                 'visited_at'   => 'nullable|date'
@@ -86,7 +86,7 @@ class CustomerReviewController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message'=> 'Server error. Please contact with support.',
+                'message'=> 'Something went error. Please contact with support.',
                 // 'error' => $e->getMessage()
             ], 500);
         }
@@ -121,7 +121,7 @@ class CustomerReviewController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message'=> 'Server error. Please contact with support.',
+                'message'=> 'Something went error. Please contact with support.',
                 // 'error' => $e->getMessage()
             ], 500);
         }
@@ -148,7 +148,7 @@ class CustomerReviewController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message'=> 'Server error. Please contact with support.',
+                'message'=> 'Something went error. Please contact with support.',
                 'error' => $e->getMessage()
             ], 500);
 
@@ -173,7 +173,7 @@ class CustomerReviewController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message'=> 'Server error. Please contact with support.',
+                'message'=> 'Something went error. Please contact with support.',
                 // 'error' => $e->getMessage()
             ], 500);
         }

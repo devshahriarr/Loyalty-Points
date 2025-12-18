@@ -14,6 +14,7 @@ use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
+    protected $activeTenantsCount = 0;
     // public function approveBusinessOwner($id)
     // {
     //     try {
@@ -217,34 +218,73 @@ class AdminController extends Controller
 
     public function getAllTenants()
     {
-        $tenants = Tenant::with('business')->get();
+
+        $tenants = Tenant::all();
+        $allTenants = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::all();
+            });
+            $allTenants = $allTenants->merge($users);
+        }
         return response()->json([
             'status' => 'success',
-            'tenants' => $tenants,
+            'tenants' => $allTenants,
         ]);
     }
 
     public function getTenantsCount()
     {
-        $tenantsCount = Tenant::count();
+        // $tenantsCount = Tenant::count();
+        $tenants = Tenant::all();
+        $tenantsCount = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::all();
+            });
+            $tenantsCount = $tenantsCount->merge($users);
+        }
+        $total = $tenantsCount->count();
         return response()->json([
             'status' => 'success',
-            'tenantsCount' => $tenantsCount,
+            'tenantsCount' => $total,
         ]);
     }
 
     public function getActiveTenantsCount()
     {
-        $activeTenantsCount = Business::with('tenants')->where('status', 'active')->count();
+        $tenants = Tenant::all();
+        $activeTenantsCount = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::where('status', 'active')->get();
+            });
+            $activeTenantsCount = $activeTenantsCount->merge($users);
+        }
+
+        $total = $activeTenantsCount->count();
+
         return response()->json([
             'status' => 'success',
-            'activeTenantsCount' => $activeTenantsCount,
+            'activeTenantsCount' => $total,
         ]);
     }
 
     public function getActiveTenants()
     {
-        $activeTenants = Business::with('tenants')->where('status', 'active')->get();
+        $tenants = Tenant::all();
+        $activeTenants = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::where('status', 'active')->get();
+            });
+            $activeTenants = $activeTenants->merge($users);
+        }
+
         return response()->json([
             'status' => 'success',
             'activeTenants' => $activeTenants,
@@ -253,7 +293,16 @@ class AdminController extends Controller
 
     public function getInactiveTenants()
     {
-        $inactiveTenants = Business::with('tenants')->where('status', 'inactive')->get();
+        $tenants = Tenant::all();
+        $inactiveTenants = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::where('status', 'inactive')->get();
+            });
+            $inactiveTenants = $inactiveTenants->merge($users);
+        }
+
         return response()->json([
             'status' => 'success',
             'inactiveTenants' => $inactiveTenants,
@@ -262,7 +311,16 @@ class AdminController extends Controller
 
     public function getPendingTenants()
     {
-        $pendingTenants = Business::with('tenants')->where('status', 'pending')->get();
+        $tenants = Tenant::all();
+        $pendingTenants = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::where('status', 'pending')->get();
+            });
+            $pendingTenants = $pendingTenants->merge($users);
+        }
+
         return response()->json([
             'status' => 'success',
             'pendingTenants' => $pendingTenants,

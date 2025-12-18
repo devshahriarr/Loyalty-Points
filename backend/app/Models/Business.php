@@ -9,21 +9,21 @@ class Business extends Model
 {
     use UsesLandlordConnection;
     protected $fillable = [
+        'owner_id',
         'name',
         'slug',
         'email',
-        'owner_id',
-        'logo',
-        'phone',
-        'address',
+        'industry_type',
+        'total_branches',
+        'branch_locations',
+        'registration_date',
+        'plan_type',
+        'billing_status',
         'status',
-        'role',
-        'password',
     ];
 
 
-    public function landlorduser()
-    {
-        return $this->belongsTo(LandlordUser::class);
+    public function tenants(){
+        return $this->hasMany(Tenant::class);
     }
 }
