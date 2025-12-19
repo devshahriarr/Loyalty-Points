@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('slug', 150)->unique();
             $table->string('phone', 20)->nullable();
             // $table->foreignId('owner_id')->nullable()->constrained('users')->onDelete('set null')->onUpdate('cascade');
+            $table->string('country',255)->nullable();
             $table->string('industry_type')->nullable();
             $table->timestamp('registration_date')->nullable();
             $table->integer('total_branches')->nullable();

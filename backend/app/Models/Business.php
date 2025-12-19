@@ -13,6 +13,7 @@ class Business extends Model
         'name',
         'slug',
         'email',
+        'country',
         'industry_type',
         'total_branches',
         'branch_locations',

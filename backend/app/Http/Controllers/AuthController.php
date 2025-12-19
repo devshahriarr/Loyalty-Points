@@ -8,6 +8,8 @@ use App\Models\LandlordUser;
 use App\Models\Tenant;
 use App\Models\Tenant\User as TenantUser;
 use App\Models\User;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -81,25 +83,25 @@ class AuthController extends Controller
 
     public function registerBusinessOwner(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:100',
-            // 'username' => 'required|string|max:100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:6|confirmed', // include password_confirmation
-            'phone' => 'nullable|string|max:20',
-        ]);
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'required|string|max:100',
+        //     // 'username' => 'required|string|max:100',
+        //     'email' => 'required|string|email|max:100|unique:users',
+        //     'password' => 'required|string|min:6|confirmed', // include password_confirmation
+        //     'phone' => 'nullable|string|max:20',
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-        $business = Business::create([
-            // 'owner_id' => $user->id,
-            'name' => $request->name . "'s Business",
-            'slug' => Str::slug($request->name . '-business-' . time()),
-            'email' => $request->email,
-            'password' => $request->password,
-            'phone' => $request->phone ?? null,
-        ]);
+        // if ($validator->fails()) {
+        //     return response()->json($validator->errors(), 422);
+        // }
+        // $business = Business::create([
+        //     // 'owner_id' => $user->id,
+        //     'name' => $request->name . "'s Business",
+        //     'slug' => Str::slug($request->name . '-business-' . time()),
+        //     'email' => $request->email,
+        //     'password' => $request->password,
+        //     'phone' => $request->phone ?? null,
+        // ]);
         // $user = LandlordUser::create([
         //     'name' => $request->input('name'),
         //     'username' => $request->input('username'),
@@ -109,10 +111,94 @@ class AuthController extends Controller
         //     'status' => 'pending',
         // ]);
 
-        return response()->json([
-            'message' => 'Registration submitted successfully. Waiting for admin approval.',
-            'business' => $business ?? null,
-        ], 201);
+    //     return response()->json([
+    //         'message' => 'Registration submitted successfully. Waiting for admin approval.',
+    //         'business' => $business ?? null,
+    //     ], 201);
+        try {
+            $validated = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:businesses,email',
+                'password' => 'required|string|min:6|confirmed',
+                // 'slug' => 'required|string|max:255|unique:businesses,slug',
+            ]);
+
+            if($validated->fails()){
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Validation failed",
+                    "errors" => $validated->errors()
+                ], 422);
+            }
+
+            if ($request->registration_date) {
+                $carbon_date = Carbon::parse($request->registration_date);
+                $registration_date = $carbon_date->format('Y-m-d H:i:s');
+            }
+
+            $business = Business::create([
+                // "owner_id" => $user->id,
+                'name' => $request->name . "'s Business",
+                'slug' => Str::slug($request->name . '-business-' . rand(1,100)),
+                'email' => $request->email,
+                'country' => $request->country??null,
+                "industry_type" => $request->industry_type,
+                "total_branches" => $request->total_branches,
+                "branch_locations" => $request->branch_locations,
+                "registration_date" => $registration_date ?? "Not provided yet",
+                "plan_type" => $request->plan_type,
+                "billing_status" => $request->billing_status,
+                "status" => "pending",
+            ]);
+
+            $domain = Str::slug($business->name) . ".127.0.0.1.nip.io";
+            $database = 'tenant_' . Str::slug($business->name, '_' . time());
+
+            $tenant = Tenant::create([
+                'name' => $business->name,
+                'domain' => $domain,
+                'database' => $database,
+                'business_id' => $business->id,
+            ]);
+
+            $business->update([
+                "owner_id"=> $tenant->id,
+            ]);
+
+            $tenant->makeCurrent();
+
+            $tenantUser = TenantUser::create([
+                "name" => $request->name,
+                "username" => $request->name."-".Str::random(3),
+                "email" => $request->email,
+                "password" => Hash::make($request->password),
+                "phone" => $user->phone ?? null,
+                "address" => $request->address,
+                "role" => "business_owner",
+                "status" => "pending",
+            ]);
+
+            // $tenantUser->assignRole('business_owner');
+
+            $tenant->forget();
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Business created successfully, waiting for admin approval.",
+                "business" => $business,
+                // "tenant" => $tenant,
+                // "tenantUser" => $tenantUser,
+                // "tenant_domain" => $domain,
+                // "tenant_url" => "http://{$domain}:8000",
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message"=> "Something went error. Please contact with support.",
+                "error" => $e->getMessage()
+            ], 500);
+        }
+
     }
 
     public function login(Request $request)
