@@ -10,15 +10,20 @@ class Branch extends Model
     use TenantAwareModel, UsesTenantConnection;
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'address',
         'phone',
         'email',
         'manager_name',
         'staffs',
-        'tenant_id',
         'latitude',
         'longitude',
         'status',
     ];
+
+    public function customers()
+    {
+        return $this->belongsToMany(Customer::class);
+    }
 }

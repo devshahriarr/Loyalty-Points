@@ -10,6 +10,7 @@ use App\Http\Controllers\GeolocationController;
 use App\Http\Controllers\LoyaltyCardController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\PlanActivationController;
 use App\Http\Controllers\RewardController;
 use App\Http\Controllers\TenantAuthController;
 // use App\Http\Controllers\TenantTestController;
@@ -27,6 +28,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('/customer/register', [CustomerController::class, 'store']);
+
 Route::middleware(['tenant'])->group(function () {
 
     // Public tenant endpoints (no auth required)
@@ -38,7 +41,7 @@ Route::middleware(['tenant'])->group(function () {
 
     Route::prefix('/owner')->group(function () {
 
-        Route::post('/register', [AuthController::class, 'register']);
+        // Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [TenantAuthController::class, 'login']);
         Route::post('/password/send-otp', [PasswordResetController::class, 'sendOtp']);
         Route::post('/password/verify-otp', [PasswordResetController::class, 'verifyOtp']);
@@ -46,9 +49,9 @@ Route::middleware(['tenant'])->group(function () {
 
         Route::middleware(['auth:tenant', 'tenant.role:business_owner'])->group(function () {
             // After auth routes
-            Route::get('/me', [AuthController::class, 'me']);
+            Route::get('/me', [TenantAuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'ownerLogout']);
-            Route::post('/refresh', [AuthController::class, 'refresh']);
+            Route::post('/refresh', [TenantAuthController::class, 'refresh']);
 
             // Branch routes
             Route::apiResource('branches', BranchController::class);
@@ -99,6 +102,9 @@ Route::middleware(['tenant'])->group(function () {
             Route::post('/nearest', [GeolocationController::class, 'nearestBranch']);
             Route::post('/check-geofence', [GeolocationController::class, 'checkGeofence']);
             // Route::post('/branches/create-auto', [GeolocationController::class, 'createBranchAuto']);
+
+            Route::get('/plans', [PlanActivationController::class, 'index']);
+            Route::post('/plans/activate', [PlanActivationController::class, 'activate']);
         });
     });
 });

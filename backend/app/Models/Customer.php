@@ -31,4 +31,14 @@ class Customer extends Model
     {
         return $this->hasMany(CustomerAnalytics::class);
     }
+
+    public function customerReviews()
+    {
+        return $this->hasMany(CustomerReview::class);
+    }
+
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class);
+    }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace App\Models\Tenant;
 
+use App\Models\UserSubscription;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -34,6 +35,12 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(UserSubscription::class)
+            ->where('status', 'active');
+    }
 
     /**
      * Return the identifier that will be stored in the JWT subject claim.

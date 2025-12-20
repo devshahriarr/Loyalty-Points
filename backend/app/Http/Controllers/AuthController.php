@@ -9,7 +9,9 @@ use App\Models\Tenant;
 use App\Models\Tenant\User as TenantUser;
 use App\Models\User;
 use Carbon\Carbon;
+use Database\Seeders\SubscriptionSeeder;
 use Exception;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -19,67 +21,67 @@ use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 class AuthController extends Controller
 {
     // Register
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:100',
-            'username' => 'required|string|max:100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:6|confirmed', // include password_confirmation
-        ]);
+    // public function register(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|max:100',
+    //         'username' => 'required|string|max:100',
+    //         'email' => 'required|string|email|max:100|unique:users',
+    //         'password' => 'required|string|min:6|confirmed', // include password_confirmation
+    //     ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 422);
+    //     }
 
-        $user = User::create([
-            'name' => $request->input('name'),
-            'username' => $request->input('username'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-            'phone' => $request->input('phone') ?? null,
-            'status' => 'active',
-        ]);
+    //     $user = User::create([
+    //         'name' => $request->input('name'),
+    //         'username' => $request->input('username'),
+    //         'email' => $request->input('email'),
+    //         'password' => Hash::make($request->input('password')),
+    //         'phone' => $request->input('phone') ?? null,
+    //         'status' => 'active',
+    //     ]);
 
-        // Auto-create business
-        $business = Business::create([
-            'owner_id' => $user->id,
-            'name' => $user->name . "'s Business",
-            'slug' => Str::slug($user->name . '-business-' . $user->id),
-            'email' => $user->email,
-            'status' => 'active',
-        ]);
+    //     // Auto-create business
+    //     $business = Business::create([
+    //         'owner_id' => $user->id,
+    //         'name' => $user->name . "'s Business",
+    //         'slug' => Str::slug($user->name . '-business-' . $user->id),
+    //         'email' => $user->email,
+    //         'status' => 'active',
+    //     ]);
 
 
-        // Create tenant for the business
-        $domain = Str::slug($business->name) . ".127.0.0.1.nip.io";
-        $database = 'tenant_' . Str::slug($business->name, '_' . time());
+    //     // Create tenant for the business
+    //     $domain = Str::slug($business->name) . ".127.0.0.1.nip.io";
+    //     $database = 'tenant_' . Str::slug($business->name, '_' . time());
 
-        $tenant = Tenant::create([
-            'name' => $business->name,
-            'domain' => $domain,
-            'database' => $database,
-            'business_id' => $business->id,
-        ]);
+    //     $tenant = Tenant::create([
+    //         'name' => $business->name,
+    //         'domain' => $domain,
+    //         'database' => $database,
+    //         'business_id' => $business->id,
+    //     ]);
 
-        // Link user with business
-        // Update user status
-        // asign role
-        $user->business_id = $business->id;
-        $user->status = 'active';
-        $user->assignRole('business_owner');
-        $user->save();
+    //     // Link user with business
+    //     // Update user status
+    //     // asign role
+    //     $user->business_id = $business->id;
+    //     $user->status = 'active';
+    //     $user->assignRole('business_owner');
+    //     $user->save();
 
-        // $token = JWTAuth::fromUser($user);
+    //     // $token = JWTAuth::fromUser($user);
 
-        return response()->json([
-            'message' => 'Tenant successfully registered',
-            'business_owner' => $user,
-            'business' => $business,
-            'tenant' => $tenant,
-            // 'token' => $token
-        ], 201);
-    }
+    //     return response()->json([
+    //         'message' => 'Tenant successfully registered',
+    //         'business_owner' => $user,
+    //         'business' => $business,
+    //         'tenant' => $tenant,
+    //         // 'token' => $token
+    //     ], 201);
+    // }
 
     public function registerBusinessOwner(Request $request)
     {
@@ -145,7 +147,7 @@ class AuthController extends Controller
                 "industry_type" => $request->industry_type,
                 "total_branches" => $request->total_branches,
                 "branch_locations" => $request->branch_locations,
-                "registration_date" => $registration_date ?? "Not provided yet",
+                "registration_date" => $registration_date ?? null,
                 "plan_type" => $request->plan_type,
                 "billing_status" => $request->billing_status,
                 "status" => "pending",
@@ -161,17 +163,24 @@ class AuthController extends Controller
                 'business_id' => $business->id,
             ]);
 
+
             $business->update([
                 "owner_id"=> $tenant->id,
             ]);
 
             $tenant->makeCurrent();
 
+            // Run tenant-only seeders
+            Artisan::call('db:seed', [
+                '--class' => SubscriptionSeeder::class,
+                '--force' => true,
+            ]);
+
             $tenantUser = TenantUser::create([
                 "name" => $request->name,
                 "username" => $request->name."-".Str::random(3),
                 "email" => $request->email,
-                "password" => Hash::make($request->password),
+                "password" => Hash::make($request->input('password') ?? $request->password),
                 "phone" => $user->phone ?? null,
                 "address" => $request->address,
                 "role" => "business_owner",
@@ -309,7 +318,7 @@ class AuthController extends Controller
                 'message'=> 'You are not a business owner'
             ], 403);
 
-        }else{
+        }elseif($businessUser->role === 'business_owner') {
 
             auth('tenant')->logout();
 
@@ -334,7 +343,7 @@ class AuthController extends Controller
                 'message'=> 'You are not a staff'
             ], 403);
 
-        }else{
+        }elseif($staff->role === 'staff') {
 
             auth('tenant')->logout();
 
@@ -359,7 +368,7 @@ class AuthController extends Controller
                 'message'=> 'You are not a customer'
             ], 403);
 
-        }else{
+        }elseif($customer->role === 'customer') {
 
             auth('tenant')->logout();
 

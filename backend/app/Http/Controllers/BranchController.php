@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\Tenant;
+use App\Services\SubscriptionUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -61,6 +62,8 @@ class BranchController extends Controller
             'latitude' => $request->input('latitude') ?? null,
             'longitude =>' => $request->input('longitude') ?? null,
         ]);
+
+        SubscriptionUsageService::increment('locations');
 
         return response()->json([
             'status' => 'success',

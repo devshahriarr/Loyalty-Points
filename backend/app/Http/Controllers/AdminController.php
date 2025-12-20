@@ -246,6 +246,8 @@ class AdminController extends Controller
                 'status' => 'active',
             ]);
 
+            $tenant->forget();
+
             // 6. Activate business
             $business->update([
                 'status' => 'active',
@@ -276,9 +278,6 @@ class AdminController extends Controller
                 'message' => 'Approval failed',
                 'error' => $e->getMessage(),
             ], 500);
-        } finally {
-            // optional(tenant())->forget();
-            $tenant->forget();
         }
     }
 
