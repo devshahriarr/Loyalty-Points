@@ -7,6 +7,7 @@ use App\Models\LandlordUser as User;
 use App\Models\Business;
 use App\Models\Tenant;
 use Exception;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -141,33 +142,23 @@ class AdminController extends Controller
             // 2) Switch to tenant context
             $tenant->makeCurrent();
 
-            // OPTIONAL: If you need to run tenant migrations automatically, you could
-            // trigger them here (uncomment if your setup supports it):
-            // \Artisan::call('tenants:migrate', ['--tenant' => $tenant->id]);
+            // Run migrations if not yet done (optional, but safe)
+            Artisan::call('migrate', [
+                '--database' => 'tenant',
+                '--path' => 'database/migrations/tenants',
+                '--force' => true,
+            ]);
 
-            // 3) Ensure Spatie roles exist inside tenant DB
-            $roles = ['system_admin', 'business_owner', 'staff', 'customer'];
-            foreach ($roles as $r) {
-                Role::firstOrCreate(['name' => $r]);
-            }
-
-            // 4) Clear Spatie permission cache (important!)
+            // Clear permission cache in tenant context
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-            // 5) Prepare password: avoid double-hash
-            $rawOrHashed = $business->password ?? null;
-            if (!$rawOrHashed) {
-                // If no password stored on business, generate a random one and consider notifying owner
-                $generated = Str::random(10);
-                $hashedPassword = Hash::make($generated);
-                // You might want to send $generated to the owner via email
-            } else {
-                // Detect if already hashed (bcrypt usually starts with $2y$ or $2a$ or argon prefix)
-                if (Str::startsWith($rawOrHashed, ['$2y$', '$2a$', '$argon'])) {
-                    $hashedPassword = $rawOrHashed; // already hashed
-                } else {
-                    $hashedPassword = Hash::make($rawOrHashed);
-                }
+
+            $roles = ['system_admin', 'business_owner', 'staff', 'customer'];
+            foreach ($roles as $r) {
+                // ensure guard_name matches your setup (usually 'web' or your guard)
+                Role::firstOrCreate(
+                    ['name' => $r, 'guard_name' => 'api']
+                );
             }
 
             // 6) Create tenant user inside tenant DB
@@ -175,7 +166,7 @@ class AdminController extends Controller
                 'name' => $business->name,
                 'username' => Str::slug($business->name) . '-' . $timestamp,
                 'email' => $business->email,
-                'password' => $hashedPassword,
+                'password' => Hash::make($business->password),
                 'business_id' => $business->id,
                 'status' => 'active',
             ]);
@@ -184,9 +175,7 @@ class AdminController extends Controller
             $tenantUser->assignRole('business_owner');
 
             // 8) Update landlord business record (back on landlord connection)
-            // If makeCurrent changed default connection, ensure we use landlord connection:
-            // Assuming Business model uses default connection; if not, you can force it:
-            // \App\Models\Business::on('landlord')->find($business->id) ...
+
             $business->status = 'active';
             $business->password = null; // set password to null safely
             $business->owner_id = $tenantUser->id;
