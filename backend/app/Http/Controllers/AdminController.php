@@ -6,21 +6,25 @@ use Illuminate\Http\Request;
 use App\Models\LandlordUser as User;
 use App\Models\Business;
 use App\Models\Tenant;
+use App\Models\Tenant\User as TenantUser;
 use Exception;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BusinessApprovedMail;
 
 class AdminController extends Controller
 {
+    protected $activeTenantsCount = 0;
     // public function approveBusinessOwner($id)
     // {
     //     try {
-    //         // $user = User::where('id', $id)
-    //         // ->where('status', 'pending')
-    //         // ->first();
+    //         $user = User::where('id', $id)
+    //         ->where('status', 'pending')
+    //         ->first();
     //         $business = Business::findOrFail($id)->where('status', 'inactive')->first();
 
     //         // add graceful response
@@ -65,7 +69,7 @@ class AdminController extends Controller
 
     //         $roles = ['system_admin', 'business_owner', 'staff', 'customer'];
     //         foreach ($roles as $r) {
-    //             \Spatie\Permission\Models\Role::firstOrCreate(['name' => $r]);
+    //             Role::firstOrCreate(['name' => $r]);
     //         }
 
     //         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
@@ -105,135 +109,248 @@ class AdminController extends Controller
     //         ], 500);
     //     }
     // }
-    public function approveBusinessOwner($id)
+    // public function approveBusinessOwner($id)
+    // {
+    //     try {
+    //         // সঠিকভাবে ব্যবসা লোড করো — chaining bug ঠিক করা
+    //         $business = Business::where('id', $id)->where('status', 'inactive')->first();
+    //         if (!$business) {
+    //             return response()->json([
+    //                 'error' => 'Pending business owner not found or already approved.'
+    //             ], 404);
+    //         }
+
+    //         // Transaction: সব কাজ একসাথে, fail হলে rollback হবে
+    //         DB::beginTransaction();
+
+    //         // 1) Create Tenant (ensure domain/database unique-ish)
+    //         $baseSlug = Str::slug($business->name);
+    //         $timestamp = time();
+    //         $rand = substr(Str::random(6), 0, 6);
+
+    //         $domain = "{$baseSlug}.127.0.0.1.nip.io"; // local host pattern
+    //         // ensure domain uniqueness by suffixing timestamp+rand when necessary
+    //         if (Tenant::where('domain', $domain)->exists()) {
+    //             $domain = "{$baseSlug}-{$timestamp}-{$rand}.127.0.0.1.nip.io";
+    //         }
+
+    //         $database = 'tenant_' . Str::slug($business->name . '_' . $timestamp . '_' . $rand, '_');
+
+    //         $tenant = Tenant::create([
+    //             'name' => $business->name,
+    //             'domain' => $domain,
+    //             'database' => $database,
+    //             'business_id' => $business->id,
+    //         ]);
+
+    //         // 2) Switch to tenant context
+    //         $tenant->makeCurrent();
+
+    //         // OPTIONAL: If you need to run tenant migrations automatically, you could
+    //         // trigger them here (uncomment if your setup supports it):
+    //         // \Artisan::call('tenants:migrate', ['--tenant' => $tenant->id]);
+
+    //         // 3) Ensure Spatie roles exist inside tenant DB
+    //         $roles = ['system_admin', 'business_owner', 'staff', 'customer'];
+    //         foreach ($roles as $r) {
+    //             Role::firstOrCreate(['name' => $r]);
+    //         }
+
+    //         // 4) Clear Spatie permission cache (important!)
+    //         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+    //         // 5) Prepare password: avoid double-hash
+    //         $rawOrHashed = $business->password ?? null;
+    //         if (!$rawOrHashed) {
+    //             // If no password stored on business, generate a random one and consider notifying owner
+    //             $generated = Str::random(10);
+    //             $hashedPassword = Hash::make($generated);
+    //             // You might want to send $generated to the owner via email
+    //         } else {
+    //             // Detect if already hashed (bcrypt usually starts with $2y$ or $2a$ or argon prefix)
+    //             if (Str::startsWith($rawOrHashed, ['$2y$', '$2a$', '$argon'])) {
+    //                 $hashedPassword = $rawOrHashed; // already hashed
+    //             } else {
+    //                 $hashedPassword = Hash::make($rawOrHashed);
+    //             }
+    //         }
+
+    //         // 6) Create tenant user inside tenant DB
+    //         $tenantUser = \App\Models\User::create([
+    //             'name' => $business->name,
+    //             'username' => Str::slug($business->name) . '-' . $timestamp,
+    //             'email' => $business->email,
+    //             'password' => $hashedPassword,
+    //             'business_id' => $business->id,
+    //             'status' => 'active',
+    //         ]);
+
+    //         // 7) Assign role by name (safer). This will insert into model_has_roles.
+    //         $tenantUser->assignRole('business_owner');
+
+    //         // 8) Update landlord business record (back on landlord connection)
+    //         // If makeCurrent changed default connection, ensure we use landlord connection:
+    //         // Assuming Business model uses default connection; if not, you can force it:
+    //         // \App\Models\Business::on('landlord')->find($business->id) ...
+    //         $business->status = 'active';
+    //         $business->password = null; // set password to null safely
+    //         $business->owner_id = $tenantUser->id;
+    //         $business->save();
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'message' => 'Business owner approved successfully!',
+    //             'user' => $tenantUser,
+    //             'business' => $business,
+    //             'tenant' => $tenant,
+    //             'tenant_url' => "http://{$domain}:8000",
+    //         ], 201);
+    //     } catch (Exception $e) {
+    //         DB::rollBack();
+
+    //         // Optional: if tenant DB was partially created, you may want to cleanup:
+    //         // try { $tenant && $tenant->delete(); } catch (\Throwable $t) {}
+
+    //         return response()->json([
+    //             "status" => "error",
+    //             "message" => "Server error. Please contact with support.",
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+    public function approveBusinessOwner($businessId)
     {
         try {
-            // সঠিকভাবে ব্যবসা লোড করো — chaining bug ঠিক করা
-            $business = Business::where('id', $id)->where('status', 'inactive')->first();
-            if (!$business) {
-                return response()->json([
-                    'error' => 'Pending business owner not found or already approved.'
-                ], 404);
-            }
-
-            // Transaction: সব কাজ একসাথে, fail হলে rollback হবে
             DB::beginTransaction();
 
-            // 1) Create Tenant (ensure domain/database unique-ish)
-            $baseSlug = Str::slug($business->name);
-            $timestamp = time();
-            $rand = substr(Str::random(6), 0, 6);
+            // 1. Find pending business
+            $business = Business::where('id', $businessId)
+                ->where('status', 'pending')
+                ->firstOrFail();
 
-            $domain = "{$baseSlug}.127.0.0.1.nip.io"; // local host pattern
-            // ensure domain uniqueness by suffixing timestamp+rand when necessary
-            if (\App\Models\Tenant::where('domain', $domain)->exists()) {
-                $domain = "{$baseSlug}-{$timestamp}-{$rand}.127.0.0.1.nip.io";
-            }
+            // 2. Find tenant
+            $tenant = Tenant::where('business_id', $business->id)->firstOrFail();
 
-            $database = 'tenant_' . Str::slug($business->name . '_' . $timestamp . '_' . $rand, '_');
-
-            $tenant = Tenant::create([
-                'name' => $business->name,
-                'domain' => $domain,
-                'database' => $database,
-                'business_id' => $business->id,
-            ]);
-
-            // 2) Switch to tenant context
+            // 3. Switch to tenant DB
             $tenant->makeCurrent();
 
-            // Run migrations if not yet done (optional, but safe)
-            Artisan::call('migrate', [
-                '--database' => 'tenant',
-                '--path' => 'database/migrations/tenants',
-                '--force' => true,
-            ]);
+            // 4. Find pending tenant user (business owner)
+            $tenantUser = TenantUser::where('email', $business->email)
+                ->where('role', 'business_owner')
+                ->where('status', 'pending')
+                ->firstOrFail();
 
-            // Clear permission cache in tenant context
-            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
-
-            $roles = ['system_admin', 'business_owner', 'staff', 'customer'];
-            foreach ($roles as $r) {
-                // ensure guard_name matches your setup (usually 'web' or your guard)
-                Role::firstOrCreate(
-                    ['name' => $r, 'guard_name' => 'api']
-                );
-            }
-
-            // 6) Create tenant user inside tenant DB
-            $tenantUser = \App\Models\User::create([
-                'name' => $business->name,
-                'username' => Str::slug($business->name) . '-' . $timestamp,
-                'email' => $business->email,
-                'password' => Hash::make($business->password),
-                'business_id' => $business->id,
+            // 5. Activate tenant user
+            $tenantUser->update([
                 'status' => 'active',
             ]);
 
-            // 7) Assign role by name (safer). This will insert into model_has_roles.
-            $tenantUser->assignRole('business_owner');
+            $tenant->forget();
 
-            // 8) Update landlord business record (back on landlord connection)
-
-            $business->status = 'active';
-            $business->password = null; // set password to null safely
-            $business->owner_id = $tenantUser->id;
-            $business->save();
+            // 6. Activate business
+            $business->update([
+                'status' => 'active',
+                'owner_id' => $tenantUser->id,
+            ]);
 
             DB::commit();
 
+            $sent = Mail::to($business->email)->send(new BusinessApprovedMail(
+            $business->name, "http://{$tenant->domain}:8000", $business->email
+            ));
+
             return response()->json([
-                'message' => 'Business owner approved successfully!',
-                'user' => $tenantUser,
+                'status' => 'success',
+                'message' => 'Business approved successfully',
+                'email_sent' => $sent? "Mail sent to business owner successfully" : "Mail not sent to business owner",
                 'business' => $business,
-                'tenant' => $tenant,
-                'tenant_url' => "http://{$domain}:8000",
-            ], 201);
+                'tenant_user' => $tenantUser,
+                'tenant_domain' => $tenant->domain,
+                'tenant_url' => "http://{$tenant->domain}:8000",
+            ]);
+
         } catch (Exception $e) {
             DB::rollBack();
 
-            // Optional: if tenant DB was partially created, you may want to cleanup:
-            // try { $tenant && $tenant->delete(); } catch (\Throwable $t) {}
-
             return response()->json([
-                "status" => "error",
-                "message" => "Server error. Please contact with support.",
-                'error' => $e->getMessage()
+                'status' => 'error',
+                'message' => 'Approval failed',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     public function getAllTenants()
     {
-        $tenants = Tenant::with('business')->get();
+
+        $tenants = Tenant::all();
+        $allTenants = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::all();
+            });
+            $allTenants = $allTenants->merge($users);
+        }
         return response()->json([
             'status' => 'success',
-            'tenants' => $tenants,
+            'tenants' => $allTenants,
         ]);
     }
 
     public function getTenantsCount()
     {
-        $tenantsCount = Tenant::count();
+        // $tenantsCount = Tenant::count();
+        $tenants = Tenant::all();
+        $tenantsCount = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::all();
+            });
+            $tenantsCount = $tenantsCount->merge($users);
+        }
+        $total = $tenantsCount->count();
         return response()->json([
             'status' => 'success',
-            'tenantsCount' => $tenantsCount,
+            'tenantsCount' => $total,
         ]);
     }
 
     public function getActiveTenantsCount()
     {
-        $activeTenantsCount = Business::with('tenants')->where('status', 'active')->count();
+        $tenants = Tenant::all();
+        $activeTenantsCount = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::where('status', 'active')->get();
+            });
+            $activeTenantsCount = $activeTenantsCount->merge($users);
+        }
+
+        $total = $activeTenantsCount->count();
+
         return response()->json([
             'status' => 'success',
-            'activeTenantsCount' => $activeTenantsCount,
+            'activeTenantsCount' => $total,
         ]);
     }
 
     public function getActiveTenants()
     {
-        $activeTenants = Business::with('tenants')->where('status', 'active')->get();
+        $tenants = Tenant::all();
+        $activeTenants = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::where('status', 'active')->get();
+            });
+            $activeTenants = $activeTenants->merge($users);
+        }
+
         return response()->json([
             'status' => 'success',
             'activeTenants' => $activeTenants,
@@ -242,7 +359,16 @@ class AdminController extends Controller
 
     public function getInactiveTenants()
     {
-        $inactiveTenants = Business::with('tenants')->where('status', 'inactive')->get();
+        $tenants = Tenant::all();
+        $inactiveTenants = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::where('status', 'inactive')->get();
+            });
+            $inactiveTenants = $inactiveTenants->merge($users);
+        }
+
         return response()->json([
             'status' => 'success',
             'inactiveTenants' => $inactiveTenants,
@@ -251,7 +377,16 @@ class AdminController extends Controller
 
     public function getPendingTenants()
     {
-        $pendingTenants = Business::with('tenants')->where('status', 'pending')->get();
+        $tenants = Tenant::all();
+        $pendingTenants = collect();
+
+        foreach ($tenants as $tenant) {
+            $users = $tenant->execute(function () {
+                return \App\Models\User::where('status', 'pending')->get();
+            });
+            $pendingTenants = $pendingTenants->merge($users);
+        }
+
         return response()->json([
             'status' => 'success',
             'pendingTenants' => $pendingTenants,

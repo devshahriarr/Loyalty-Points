@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Spatie\Multitenancy\Models\Concerns\UsesLandlordConnection;
+use Spatie\Permission\Traits\HasRoles;
 
 class LandlordUser extends User
 {
-    use UsesLandlordConnection;
+    use HasRoles, UsesLandlordConnection;
     protected $table = 'users';
     protected $connection = 'landlord';
     protected $guard_name = 'api';
@@ -16,8 +17,4 @@ class LandlordUser extends User
         return 'landlord';
     }
 
-    public function businesses()
-    {
-        return $this->hasMany(Business::class);
-    }
 }

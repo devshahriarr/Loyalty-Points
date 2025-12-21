@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -11,9 +12,12 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::all();
+        $host = $request->getHost();
+        $tenant = Tenant::where("domain", $host)->first();
+
+        $customers = Customer::where('tenant_id', $tenant->id)->get();
         return response()->json([
             'status' => 'success',
             'customers' => $customers
@@ -29,6 +33,7 @@ class CustomerController extends Controller
             'user_id' => 'required',
             'branch_id' => 'required',
             'loyalty_card_id' => 'required',
+            'tenant_id'=> 'required',
             'total_points' => 'required',
             'total_visits' => 'required',
             'last_visit' => 'required',

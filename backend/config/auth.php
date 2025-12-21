@@ -62,6 +62,10 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
         ],
+        'tenant' => [
+            'driver' => 'jwt',
+            'provider' => 'tenant_users',
+        ],
     ],
 
     /*
@@ -91,6 +95,10 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+        'tenant_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Tenant\User::class,
+        ],
     ],
 
     /*

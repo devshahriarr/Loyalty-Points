@@ -11,6 +11,7 @@ use Spatie\Multitenancy\Actions\CreateDatabase;
 
 // use App\Actions\CreateDatabase;
 use App\Actions\MigrateTenantSafely;
+use Spatie\Permission\Models\Role;
 
 class Tenant extends BaseTenant
 {
@@ -52,6 +53,7 @@ class Tenant extends BaseTenant
                 '--path' => 'database/migrations/tenants', // migration folder
                 '--force' => true,
             ]);
+
             logger("Tenant {$tenant->name} migrated successfully");
 
             // Current tenant মুছে ফেলো
@@ -69,4 +71,9 @@ class Tenant extends BaseTenant
     public function tenantPermissions(){
         return $this->hasMany(TenantPermission::class);
     }
+
+    public function business(){
+        return $this->belongsTo(Business::class);
+    }
+
 }

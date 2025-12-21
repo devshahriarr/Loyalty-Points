@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subscriptions', function (Blueprint $table) {
+        Schema::create('subscription_limits', function (Blueprint $table) {
             $table->id();
-            $table->enum('package_name', ['starter', 'grow', 'business']);
-            $table->string('amount', 255);
-            $table->string('duration', 255);
+            $table->foreignId('subscription_id')->constrained()->cascadeOnDelete();
+            $table->string('key'); // locations, cards
+            $table->integer('value')->nullable(); // null = unlimited
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subscriptions');
+        Schema::dropIfExists('subscription_limits');
     }
 };

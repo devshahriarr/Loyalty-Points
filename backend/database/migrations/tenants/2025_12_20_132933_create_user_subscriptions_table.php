@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('user_subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('subscription_id')->constrained('subscriptions')->onDelete('cascade')->onUpdate('cascade');
-            $table->enum('status', ['pending', 'active', 'disable', 'banned']);
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('subscription_id')->constrained()->cascadeOnDelete();
+            $table->enum('status', ['active', 'inactive']);
             $table->timestamps();
         });
     }
