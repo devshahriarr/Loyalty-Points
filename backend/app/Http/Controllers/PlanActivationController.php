@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subscription;
+use App\Models\SubscriptionFeature;
+use App\Models\SubscriptionLimit;
 use App\Models\SubscriptionUsage;
 use App\Models\Tenant\User;
 use App\Models\UserSubscription;
@@ -13,45 +15,111 @@ class PlanActivationController extends Controller
 {
     public function index()
     {
-        return Subscription::with(['limits', 'features'])->get();
+        /**
+         * Show all plans (table view)
+         */
+        $plans = Subscription::with(['limits', 'features'])
+            ->orderBy('price')
+            ->get();
+
+        return response()->json($plans);
     }
 
-    public function current()
+    /**
+     * Update plan (Edit modal save)
+     */
+    public function update(Request $request, $id)
     {
-        $user = auth('tenant')->user();
-        $tenantUser = User::where('id', $user->id)->first();
-        return $tenantUser
-            ->activeSubscription()
-            ->with(['subscription.limits', 'subscription.features', 'usages'])
-            ->first();
-    }
+        $request->validate([
+            'price' => 'required|numeric',
+            'is_active' => 'required|boolean',
+            'limits' => 'required|array',
+            'features' => 'required|array'
+        ]);
 
-    public function activate(Request $request)
-    {
-        $user = auth('tenant')->user();
+        DB::transaction(function () use ($request, $id) {
 
-        DB::transaction(function () use ($request, $user) {
+            $plan = Subscription::findOrFail($id);
 
-            // Disable previous
-            UserSubscription::where('user_id', $user->id)
-                ->update(['status' => 'inactive']);
-
-            $userSub = UserSubscription::create([
-                'user_id' => $user->id,
-                'subscription_id' => $request->subscription_id,
-                'status' => 'active',
+            $plan->update([
+                'price' => $request->price,
+                'is_active' => $request->is_active
             ]);
 
-            // reset usages
-            foreach (['locations', 'cards'] as $key) {
-                SubscriptionUsage::create([
-                    'user_subscription_id' => $userSub->id,
-                    'key' => $key,
-                    'used' => 0,
+            /** -------------------------
+             * Update Limits
+             * ------------------------*/
+            foreach ($request->limits as $key => $value) {
+                SubscriptionLimit::updateOrCreate(
+                    [
+                        'subscription_id' => $plan->id,
+                        'key' => $key
+                    ],
+                    [
+                        'value' => $value
+                    ]
+                );
+            }
+
+            /** -------------------------
+             * Update Features
+             * ------------------------*/
+            SubscriptionFeature::where('subscription_id', $plan->id)->delete();
+
+            foreach ($request->features as $feature) {
+                SubscriptionFeature::create([
+                    'subscription_id' => $plan->id,
+                    'feature' => $feature
                 ]);
             }
         });
 
-        return response()->json(['message' => 'Plan activated']);
+        return response()->json([
+            'message' => 'Plan updated successfully'
+        ]);
+    }
+
+    public function assignToTenant(Request $request)
+    {
+        $request->validate([
+            'tenant_id' => 'required|exists:tenants,id',
+            'subscription_id' => 'required|exists:subscriptions,id'
+        ]);
+
+        DB::transaction(function () use ($request) {
+
+            // Disable previous subscriptions
+            UserSubscription::where('tenant_id', $request->tenant_id)
+                ->update(['status' => 'inactive']);
+
+            // Assign new plan
+            UserSubscription::create([
+                'tenant_id' => $request->tenant_id,
+                'subscription_id' => $request->subscription_id,
+                'status' => 'active'
+            ]);
+
+            // Reset usage
+            // app(\App\Services\SubscriptionUsageService::class)
+                // ->resetUsage($request->tenant_id);
+        });
+
+        return response()->json([
+            'message' => 'Plan activated for tenant'
+        ]);
+    }
+
+    /**
+     * Toggle plan status (enable / disable)
+     */
+    public function toggle($id)
+    {
+        $plan = Subscription::findOrFail($id);
+        $plan->update(['is_active' => ! $plan->is_active]);
+
+        return response()->json([
+            'message' => 'Plan status updated',
+            'is_active' => $plan->is_active
+        ]);
     }
 }

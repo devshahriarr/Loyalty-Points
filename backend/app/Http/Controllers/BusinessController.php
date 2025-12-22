@@ -7,8 +7,10 @@ use App\Models\Tenant;
 use App\Models\Tenant\User as TenantUser;
 use App\Models\User;
 use Carbon\Carbon;
+use Database\Seeders\SubscriptionSeeder;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -76,6 +78,12 @@ class BusinessController extends Controller
             ]);
 
             $tenant->makeCurrent();
+
+            // Run tenant-only seeders
+            Artisan::call('db:seed', [
+                '--class' => SubscriptionSeeder::class,
+                '--force' => true,
+            ]);
 
             $tenantUser = TenantUser::create([
                 "name" => $request->name,

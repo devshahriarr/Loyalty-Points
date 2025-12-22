@@ -22,23 +22,23 @@ class SubscriptionSeeder extends Seeder
         ];
 
         foreach ($plans as $code => $data) {
-            $sub = Subscription::create([
+            $plan = Subscription::create([
                 'code' => $code,
                 'name' => ucfirst($code),
                 'price' => $data['price'],
             ]);
 
-            SubscriptionLimit::insert([
-                ['subscription_id' => $sub->id, 'key' => 'locations', 'value' => $data['locations']],
-                ['subscription_id' => $sub->id, 'key' => 'cards', 'value' => $data['cards']],
+            SubscriptionLimit::create([
+                'subscription_id' => $plan->id,
+                'key' => 'locations',
+                'value' => $data['locations'],
             ]);
 
-            foreach (['points', 'stamps', 'reward', 'membership'] as $f) {
-                SubscriptionFeature::create([
-                    'subscription_id' => $sub->id,
-                    'feature' => $f,
-                ]);
-            }
+            SubscriptionLimit::create([
+                'subscription_id' => $plan->id,
+                'key' => 'cards',
+                'value' => $data['cards'],
+            ]);
         }
     }
 }

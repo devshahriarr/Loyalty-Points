@@ -1,7 +1,9 @@
 <?php
 namespace App\Http\Middleware;
 
-use App\Models\Tenant\User;
+use App\Models\SubscriptionUsage;
+use App\Models\Tenant;
+use App\Models\UserSubscription;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -9,21 +11,19 @@ class CheckSubscriptionLimit
 {
     public function handle(Request $request, Closure $next, string $key)
     {
-        $user = auth('tenant')->user();
-        $tenantUser = User::where('id', $user->id)->first();
-        $subscription = $tenantUser
-        ->activeSubscription()
-        ->with(['subscription.limits', 'usages'])
+        $host = $request->getHost();
+        $tenant = Tenant::where("domain", $host)->first();
+
+        $subscription = UserSubscription::with('subscription.limits')
+        ->where('tenant_id', $tenant->id)
+        ->where('status', 'active')
         ->firstOrFail();
 
-        $limit = $subscription->subscription->limits
-            ->where('key', $key)->first();
-
-        $usage = $subscription->usages
-            ->where('key', $key)->first();
+        $limit = $subscription->subscription->limits->where('key', $key)->first();
+        $usage = SubscriptionUsage::firstOrCreate(['key' => $key]);
 
         if ($limit && $limit->value !== null && $usage->used >= $limit->value) {
-            abort(403, ucfirst($key).' limit exceeded');
+            abort(403, ucfirst($key) . ' limit exceeded');
         }
 
         return $next($request);

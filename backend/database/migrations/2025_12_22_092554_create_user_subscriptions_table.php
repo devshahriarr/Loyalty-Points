@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('user_subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('tenant_id')->constrained('tenants')->cascadeOnDelete();
             $table->foreignId('subscription_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['active', 'inactive']);
             $table->timestamps();

@@ -3,27 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesLandlordConnection;
 use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class UserSubscription extends Model
 {
-    use UsesTenantConnection;
+    use UsesLandlordConnection;
 
-    protected $connection = 'tenant';
+    protected $connection = 'landlord';
 
-    protected $fillable = [
-        'user_id',
-        'subscription_id',
-        'status',
-        'starts_at',
-        'ends_at'
-    ];
+    protected $fillable = ['tenant_id', 'subscription_id', 'status'];
 
-    public function subscription() {
+    public function subscription()
+    {
         return $this->belongsTo(Subscription::class);
     }
 
-    public function usages() {
+    public function SubscriptionUsages()
+    {
         return $this->hasMany(SubscriptionUsage::class);
     }
+
 }

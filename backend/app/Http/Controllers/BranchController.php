@@ -6,11 +6,14 @@ use App\Models\Branch;
 use App\Models\Tenant;
 use App\Services\SubscriptionUsageService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Validator;
 
+// class BranchController extends Controller implements HasMiddleware
 class BranchController extends Controller
 {
-    protected $host = "";
+    protected $host;
     protected $tenant;
 
     public function __construct(Request $request){
@@ -18,6 +21,14 @@ class BranchController extends Controller
         $tenant = Tenant::where("domain", $this->host)->first();
         $this->tenant = $tenant;
     }
+
+    // public static function middleware(): array
+    // {
+    //     return [
+    //         // Apply 'subscription.limit:locations' only to 'store' method
+    //         new Middleware('subscription.limit:locations', only: ['store']),
+    //     ];
+    // }
 
     /**
      * Display a listing of the resource.
@@ -52,18 +63,18 @@ class BranchController extends Controller
         }
 
         $branch = Branch::create([
+            'tenant_id' => $this->tenant->id?? null,
             'name' => $request->input('name'),
             'address' => $request->input('address'),
             'manager_name' => $request->input('manager_name'),
             'staffs' => $request->input('staffs'),
-            'tenant_id' => $this->tenant->id?? null,
             'phone' => $request->input('phone') ?? null,
             'email' => $request->input('email') ?? null,
             'latitude' => $request->input('latitude') ?? null,
             'longitude =>' => $request->input('longitude') ?? null,
         ]);
 
-        SubscriptionUsageService::increment('locations');
+        // SubscriptionUsageService::increment('locations');
 
         return response()->json([
             'status' => 'success',

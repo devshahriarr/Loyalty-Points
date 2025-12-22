@@ -2,25 +2,20 @@
 namespace App\Services;
 
 use App\Models\SubscriptionUsage;
-use App\Models\Tenant\User;
 
 class SubscriptionUsageService
 {
-    public static function increment(string $key): void
+    public static function increment($key)
     {
-        $user = auth('tenant')->user();
-        $tenantUser = User::where('id', $user->id)->first();
-        $subscription = $tenantUser
-            ->activeSubscription()
-            ->with('usages')
-            ->first();
-
-        $usage = $subscription->usages
-            ->where('key', $key)
-            ->first();
-
-        if ($usage) {
-            $usage->increment('used');
-        }
+        SubscriptionUsage::firstOrCreate(['key' => $key])
+            ->increment('used');
     }
+
+    /**
+     * Reset all usage counters for a tenant
+     */
+    // public function resetUsage(int $tenantId): void
+    // {
+    //     SubscriptionUsage::where('_id', $tenantId)->delete();
+    // }
 }
