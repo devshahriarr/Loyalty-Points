@@ -3,22 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 
 class LoyaltyCard extends Model
 {
-    use TenantAwareModel;
-    
+    use UsesTenantConnection;
+
+    // protected $table = "loyalty_cards";
+    protected $connection = "tenant";
+
     protected $fillable = [
-        'customer_id',
-        'card_number',
-        'points',
-        'status',
-        'expiry_date',
-        'tenant_id',
+        'type','name','company_name','description',
+        'barcode_type','status','qr_code'
     ];
-    
-    public function customer()
+
+    public function rule()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->hasOne(LoyaltyCardRule::class);
+    }
+
+    public function design()
+    {
+        return $this->hasOne(LoyaltyCardDesign::class);
     }
 }

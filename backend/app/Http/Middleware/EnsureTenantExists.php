@@ -17,27 +17,27 @@ class EnsureTenantExists
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
 
-    public function handle(Request $request, Closure $next): Response
-    {
-        $host = $request->getHost();
-        $port = $request->getPort();
+    // public function handle(Request $request, Closure $next): Response
+    // {
+    //     $host = $request->getHost();
+    //     $port = $request->getPort();
 
-        $candidates = [$host];
-        if ($port) $candidates[] = $host . ':' . $port;
+    //     $candidates = [$host];
+    //     if ($port) $candidates[] = $host . ':' . $port;
 
-        $tenant = Tenant::whereIn('domain', $candidates)->first();
+    //     $tenant = Tenant::whereIn('domain', $candidates)->first();
 
-        if ($tenant) {
-            $tenant->makeCurrent();
-            Log::info('Tenant found and made current: ' . $tenant->domain);
-            return $next($request);
-        }
+    //     if ($tenant) {
+    //         $tenant->makeCurrent();
+    //         Log::info('Tenant found and made current: ' . $tenant->domain);
+    //         return $next($request);
+    //     }
 
-        return response()->json([
-            'error' => 'No tenant found for this domain',
-            'domain' => $host
-        ], 400);
-    }
+    //     return response()->json([
+    //         'error' => 'No tenant found for this domain',
+    //         'domain' => $host
+    //     ], 400);
+    // }
 
     // public function handle(Request $request, Closure $next): Response
     // {
@@ -67,4 +67,33 @@ class EnsureTenantExists
     //         'domain' => $host
     //     ], 400);
     // }
+
+    public function handle(Request $request, Closure $next)
+    {
+        $host = $request->getHost(); // example: myshop.127.0.0.1.nip.io
+
+        $tenant = Tenant::where('domain', $host)->first();
+
+        if (! $tenant) {
+            return response()->json([
+                'error' => 'Tenant not found for this domain',
+                'domain' => $host,
+            ], 404);
+        }
+
+        // Switch tenant context
+        $tenant->makeCurrent();
+
+        try {
+            Log::info('Tenant resolved', [
+                'tenant_id' => $tenant->id,
+                'domain' => $tenant->domain,
+            ]);
+
+            return $next($request);
+        } finally {
+            // VERY IMPORTANT
+            $tenant->forgetCurrent();
+        }
+    }
 }

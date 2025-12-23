@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\ProvisionTenantAction;
 use App\Models\Business;
 use App\Models\Tenant;
 use App\Models\Tenant\User as TenantUser;
@@ -77,13 +78,9 @@ class BusinessController extends Controller
                 "owner_id"=> $tenant->id,
             ]);
 
-            $tenant->makeCurrent();
+            app(ProvisionTenantAction::class)->execute($tenant);
 
-            // Run tenant-only seeders
-            Artisan::call('db:seed', [
-                '--class' => SubscriptionSeeder::class,
-                '--force' => true,
-            ]);
+            $tenant->makeCurrent();
 
             $tenantUser = TenantUser::create([
                 "name" => $request->name,

@@ -58,16 +58,16 @@ Route::prefix('/owner')->middleware(['tenant'])->group(function () {
         // Route::apiResource('customers', CustomerController::class);
 
         // Loyalty card routes
-        Route::apiResource('loyalty-cards', LoyaltyCardController::class);
+        // Route::apiResource('loyalty-cards', LoyaltyCardController::class);
 
         // Customer points routes
-        Route::apiResource('customer-points', CustomerPointController::class);
+        // Route::apiResource('customer-points', CustomerPointController::class);
 
         // Visit logs routes
-        Route::apiResource('user-activities', UserActivityController::class);
+        // Route::apiResource('user-activities', UserActivityController::class);
 
         // Offers routes
-        Route::apiResource('offers', OfferController::class);
+        // Route::apiResource('offers', OfferController::class);
 
         Route::get('/analytics/customers', [CustomerAnalyticsController::class, 'index']); // list
         Route::post('/analytics/recalc-all', [CustomerAnalyticsController::class, 'recalcAll']);
@@ -100,6 +100,16 @@ Route::prefix('/owner')->middleware(['tenant'])->group(function () {
         Route::post('/nearest', [GeolocationController::class, 'nearestBranch']);
         Route::post('/check-geofence', [GeolocationController::class, 'checkGeofence']);
         // Route::post('/branches/create-auto', [GeolocationController::class, 'createBranchAuto']);
+
+        // Loyalty card Routes
+        Route::get('loyalty-cards', [LoyaltyCardController::class, 'index']);
+        Route::get('loyalty-cards/types', [LoyaltyCardController::class,'availableTypes']);
+        Route::post('loyalty-cards', [LoyaltyCardController::class,'store']); //->middleware(['subscription.limit:cards']);
+        Route::put('loyalty-cards/{id}/design', [LoyaltyCardController::class,'updateDesign']);
+        Route::post('loyalty-cards/{id}/activate', [LoyaltyCardController::class,'activate']);
+        Route::delete('loyalty-cards/{id}', [LoyaltyCardController::class,'destroy']);
+
+        //
     });
 });
 

@@ -9,6 +9,8 @@ class Customer extends Model
 {
     use TenantAwareModel, UsesTenantConnection;
 
+    protected $connection = 'tenant';
+
     protected $fillable = [
         'name',
         'email',
@@ -40,5 +42,10 @@ class Customer extends Model
     public function branches()
     {
         return $this->belongsToMany(Branch::class);
+    }
+
+    public function walletCards()
+    {
+        return $this->hasMany(CustomerLoyaltyCard::class);
     }
 }

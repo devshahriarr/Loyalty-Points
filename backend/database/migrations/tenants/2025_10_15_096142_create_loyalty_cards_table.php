@@ -12,13 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('loyalty_cards', function (Blueprint $table) {
+            // $table->id();
+            // // $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
+            // $table->string('name', 100)->index();
+            // $table->json('design_json')->nullable();
+            // $table->string('reward_type', 100);
+            // $table->integer('reward_threshold')->default(0);
+            // $table->string('reward_description', 255)->nullable();
+            // $table->timestamps();
+
             $table->id();
-            // $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('name', 100)->index();
-            $table->json('design_json')->nullable();
-            $table->string('reward_type', 100);
-            $table->integer('reward_threshold')->default(0);
-            $table->string('reward_description', 255)->nullable();
+            $table->string('type'); // stamp, cashback, reward, membership
+            $table->string('name');
+            $table->string('company_name');
+            $table->text('description')->nullable();
+            $table->enum('barcode_type', ['qr', 'barcode'])->default('qr');
+            $table->enum('status', ['draft', 'active', 'inactive'])->default('draft');
+            $table->string('qr_code')->nullable();
             $table->timestamps();
         });
     }
