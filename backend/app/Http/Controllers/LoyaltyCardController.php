@@ -146,12 +146,9 @@ class LoyaltyCardController extends Controller
 
     public function availableTypes()
     {
-        return [
-            ['key'=>'stamp','label'=>'Stamp Card','enabled'=>true],
-            ['key'=>'cashback','label'=>'Cashback Card','enabled'=>false],
-            ['key'=>'reward','label'=>'Reward Card','enabled'=>true],
-            ['key'=>'membership','label'=>'Membership Card','enabled'=>false],
-        ];
+        return response()->json(
+            config('loyalty.card_types')
+        );
     }
 
     public function store(Request $request)

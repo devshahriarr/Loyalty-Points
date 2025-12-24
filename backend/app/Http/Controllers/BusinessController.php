@@ -87,7 +87,7 @@ class BusinessController extends Controller
                 "username" => $request->name."-".Str::random(3),
                 "email" => $request->email,
                 "password" => Hash::make($request->password),
-                "phone" => $user->phone ?? null,
+                "phone" => $request->phone ?? null,
                 "address" => $request->address,
                 "role" => "business_owner",
                 "status" => "active",

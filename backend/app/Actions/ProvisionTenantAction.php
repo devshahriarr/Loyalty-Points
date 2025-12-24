@@ -34,11 +34,11 @@ class ProvisionTenantAction
             '--force' => true,
         ]);
 
-        // Run tenant-only seeders
-        Artisan::call('db:seed', [
-            '--class' => SubscriptionSeeder::class,
-            '--force' => true,
-        ]);
+        // // Run tenant-only seeders
+        // Artisan::call('db:seed', [
+        //     '--class' => SubscriptionSeeder::class,
+        //     '--force' => true,
+        // ]);
 
         logger("Tenant {$tenant->name} migrated successfully");
 

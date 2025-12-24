@@ -66,6 +66,14 @@ return [
             'driver' => 'jwt',
             'provider' => 'tenant_users',
         ],
+        'customer' => [
+            'driver'=> 'jwt',
+            'provider'=> 'customers',
+        ],
+        'staff' => [
+            'driver'=> 'jwt',
+            'provider'=> 'staffs',
+        ]
     ],
 
     /*
@@ -99,6 +107,16 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Tenant\User::class,
         ],
+
+        'customers' => [
+            'driver'=> 'eloquent',
+            'model'=> App\Models\Customer::class,
+        ],
+
+        'staffs' => [
+            'driver'=> 'eloquent',
+            'model'=> App\Models\Staff::class,
+        ]
     ],
 
     /*

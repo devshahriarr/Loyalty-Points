@@ -178,7 +178,7 @@ class AuthController extends Controller
                 "username" => $request->name."-".Str::random(3),
                 "email" => $request->email,
                 "password" => Hash::make($request->input('password') ?? $request->password),
-                "phone" => $user->phone ?? null,
+                "phone" => $request->phone ?? null,
                 "address" => $request->address,
                 "role" => "business_owner",
                 "status" => "pending",
@@ -325,53 +325,5 @@ class AuthController extends Controller
         }
     }
 
-    public function staffLogout()
-    {
-        $staff = auth('tenant')->user();
 
-        if (!$staff) {
-            return response()->json([
-                'message'=> 'Unauthenticated'
-            ], 401);
-        }
-
-        if ($staff->role !== 'staff') {
-            return response()->json([
-                'message'=> 'You are not a staff'
-            ], 403);
-
-        }elseif($staff->role === 'staff') {
-
-            auth('tenant')->logout();
-
-            return response()->json([
-                'message' => 'Successfully logged out'
-            ]);
-        }
-    }
-
-    public function customerLogout()
-    {
-        $customer = auth('tenant')->user();
-
-        if (!$customer) {
-            return response()->json([
-                'message'=> 'Unauthenticated'
-            ], 401);
-        }
-
-        if ($customer->role !== 'customer') {
-            return response()->json([
-                'message'=> 'You are not a customer'
-            ], 403);
-
-        }elseif($customer->role === 'customer') {
-
-            auth('tenant')->logout();
-
-            return response()->json([
-                'message' => 'Successfully logged out'
-            ]);
-        }
-    }
 }
