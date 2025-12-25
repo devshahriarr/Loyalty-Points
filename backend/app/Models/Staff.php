@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class Staff extends Model implements JWTSubject
+class Staff extends Model
 {
     use UsesTenantConnection;
 
@@ -27,22 +27,4 @@ class Staff extends Model implements JWTSubject
     protected $casts = [
         'password' => 'hashed',
     ];
-
-    /**
-     * Return the identifier that will be stored in the JWT subject claim.
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     */
-    public function getJWTCustomClaims()
-    {
-        return [
-            'role' => $this->role,
-        ];
-    }
 }

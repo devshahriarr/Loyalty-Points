@@ -17,12 +17,15 @@ class User extends Authenticatable implements JWTSubject
     protected $guard_name = 'tenant';
 
     protected $fillable = [
+        'tenant_id',
+        'shop_name',
         'name',
         'username',
         'email',
         'password',
         'phone',
         'address',
+        'branch_id',
         'role',
         'status',
     ];

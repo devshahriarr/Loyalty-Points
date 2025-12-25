@@ -87,7 +87,7 @@ return [
 
     // set database migration path for tenants
     'migrations_paths' => [
-        database_path('migrations/tenant'),
+        database_path('migrations/tenants'),
     ],
     /*
      * You can customize some of the behavior of this package by using your own custom action.

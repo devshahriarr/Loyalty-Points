@@ -118,14 +118,14 @@ Route::middleware(['tenant'])->group(function () {
 
     // Customer routes
     // Route::post('/customer/register', [CustomerController::class, 'store']);
-    Route::post('/customer/register', [CustomerController::class, 'store']);
-    Route::prefix('/customer')->middleware('tenant.role:customer')->group(function () {
+    Route::prefix('/customer')->group(function () {
+        Route::post('/register', [CustomerController::class, 'register']);
         Route::post('/login', [CustomerController::class, 'login']);
         Route::post('/password/send-otp', [CustomerPasswordOtpController::class, 'sendOtp']);
         Route::post('/password/verify-otp', [CustomerPasswordOtpController::class, 'verifyOtp']);
         Route::post('/password/reset', [CustomerPasswordOtpController::class, 'resetPassword']);
 
-        Route::middleware(['auth:tenant'])->group(function () {
+        Route::middleware(['auth:tenant', 'tenant.role:customer'])->group(function () {
             Route::get('/all', [CustomerController::class,'index']);
             Route::put('/{id}/update', [CustomerController::class, 'update']);
             Route::delete('/{id}/delete', [CustomerController::class, 'destroy']);
@@ -136,14 +136,14 @@ Route::middleware(['tenant'])->group(function () {
         });
     });
 
-    Route::post('/register', [StaffController::class, 'register']);
-    Route::prefix('/staff')->middleware(['tenant.role:staff'])->group(function () {
+    Route::prefix('/staff')->group(function () {
+        Route::post('/register', [StaffController::class, 'register']);
         Route::post('/login', [StaffController::class, 'login']);
         Route::post('/password/send-otp', [StaffPasswordOtpController::class, 'sendOtp']);
         Route::post('/password/verify-otp', [StaffPasswordOtpController::class, 'verifyOtp']);
         Route::post('/password/reset', [StaffPasswordOtpController::class, 'resetPassword']);
 
-        Route::middleware('auth:tenant')->group(function () {
+        Route::middleware(['auth:tenant', 'tenant.role:staff'])->group(function () {
             Route::get('/all', [StaffController::class,'index']);
             Route::put('/{id}/update', [StaffController::class, 'update']);
             Route::delete('/{id}/delete', [StaffController::class, 'destroy']);

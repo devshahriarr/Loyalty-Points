@@ -19,17 +19,29 @@ class StaffController extends Controller
         $this->tenant = $tenant;
     }
 
+    public function index(Request $request){
+        $staffs = User::where([
+            'role' => 'staff',
+            'tenant_id'=> $this->tenant->id
+        ])->first();
+
+        return response()->json([
+            'status' => 'success',
+            'staffs' => $staffs
+        ]);
+    }
+
     public function logout()
     {
-        $user = auth('staff')->user();
-        $staff = Staff::where('email', $user->email)->first();
+        $user = auth('tenant')->user();
+        $staff = User::where('email', $user->email)->first();
 
         if (!$staff) {
             return response()->json([
                 'message'=> 'Unauthenticated staff. Logout is not possible'
             ], 401);
         }else{
-            auth('staff')->logout();
+            auth('tenant')->logout();
 
             return response()->json([
                 'message' => 'Successfully logged out'
@@ -38,8 +50,8 @@ class StaffController extends Controller
     }
 
     public function me(){
-        $user = auth('staff')->user();
-        $staff = Staff::where('email', $user->email)->first();
+        $user = auth('tenant')->user();
+        $staff = User::where('email', $user->email)->first();
 
         return response()->json([
             'status'=> 'success',
@@ -49,7 +61,7 @@ class StaffController extends Controller
 
     public function refresh(){
         $user = auth('staff')->user();
-        $staff = Staff::where('email', $user->email)->first();
+        $staff = User::where('email', $user->email)->first();
 
         if (!$staff) {
             return response()->json([
@@ -69,7 +81,7 @@ class StaffController extends Controller
     public function register(Request $request){
         $validated = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:staffs',
+            'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -128,7 +140,7 @@ class StaffController extends Controller
     }
 
     public function destroy($id){
-        $staff = Staff::where('role', 'staff')->findOrFail($id);
+        $staff = User::where('role', 'staff')->findOrFail($id);
         $staff->delete();
 
         return response()->json([
@@ -142,16 +154,23 @@ class StaffController extends Controller
 
         $staff = User::where('email', $credentials['email'])->where('role', 'staff')->first();
 
+        $token = auth('tenant')->attempt($credentials);
 
-        if (! $token = auth('tenant')->attempt($credentials) && !$staff) {
+        if (!$token) {
+
             return response()->json(['error' => 'Invalid credentials'], 401);
+
+        } elseif(!$staff) {
+
+            return response()->json(['error'=> 'Invalid credentials'],401);
+
+        } elseif ($staff->status !== 'active') {
+
+            return response()->json(['error' => 'Account inactive'], 403);
+
         } else {
-
             $staff = auth('tenant')->user();
-
-            if ($staff->status !== 'active') {
-                return response()->json(['error' => 'Account inactive'], 403);
-            }
+            $this->tenant->forget();
 
             return response()->json([
                 'status' => 'success',

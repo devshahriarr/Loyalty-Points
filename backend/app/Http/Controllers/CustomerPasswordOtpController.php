@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\PasswordResetOtp;
 use App\Models\Customer;
 use App\Models\CustomerPasswordOtp;
+use App\Models\Tenant\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +25,7 @@ class CustomerPasswordOtpController extends Controller
             return response()->json($validated->errors(), 422);
         }
 
-        $user = Customer::where('email', $request->input('email'))->first();
+        $user = User::where('email', $request->input('email'))->first();
 
         if (!$user) {
             return response()->json(['message' => 'Email not found'], 404);
@@ -107,7 +108,7 @@ class CustomerPasswordOtpController extends Controller
         }
 
         // Update user password
-        Customer::where('email', $request->input('email'))->update([
+        User::where('email', $request->input('email'))->update([
             'password' => Hash::make($request->input('password'))
         ]);
 
