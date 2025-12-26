@@ -14,10 +14,10 @@ class GoogleMapsService
         ])->json();
     }
 
-    public function reverseGeocode($lat, $lng)
+    public function reverseGeocode($branches)
     {
         return Http::get("https://maps.googleapis.com/maps/api/geocode/json", [
-            'latlng' => "$lat,$lng",
+            'latlng' => "{$branches[0]['latitude']},{$branches[0]['longitude']}",
             'key' => config('services.google.maps_key'),
         ])->json();
     }

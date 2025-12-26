@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\GeolocationController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlanActivationController;
 
@@ -40,6 +41,15 @@ Route::prefix('/admin')->group(function () {
         Route::put('/plans/{id}', [PlanActivationController::class, 'update']);
         Route::post('/plans/assign', [PlanActivationController::class, 'assignToTenant']);
         Route::put('/plans/{id}/toggle', [PlanActivationController::class, 'toggle']);
+
+        // geolocation routes
+        Route::get('/geo/branches', [GeolocationController::class, 'allBranches']);
+        Route::post('/geo/reverse', [GeolocationController::class, 'reverseGeocode']);
+        Route::post('/geo/geocode', [GeolocationController::class, 'geocodeAddress']);
+        Route::post('/geo/search', [GeolocationController::class, 'searchPlace']);
+        Route::post('/geo/nearest', [GeolocationController::class, 'nearestBranch']);
+        Route::post('/geo/check-geofence', [GeolocationController::class, 'checkGeofence']);
+        // Route::post('/branches/create-auto', [GeolocationController::class, 'createBranchAuto']);
 
     });
 });

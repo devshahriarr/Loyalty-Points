@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\PasswordResetOtp;
 use App\Models\BusinessOwnerPasswordOtp;
+use App\Models\PasswordOtp;
 use App\Models\Tenant\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -34,9 +35,9 @@ class BusinessOwnerPasswordOtpController extends Controller
         $otp = rand(1000, 9999);
 
         // delete previous OTP
-        BusinessOwnerPasswordOtp::where('email', $request->input('email'))->delete();
+        PasswordOtp::where('email', $request->input('email'))->delete();
 
-        BusinessOwnerPasswordOtp::create([
+        PasswordOtp::create([
             'email'      => $request->input('email'),
             'otp'        => Hash::make($otp),
             'expires_at' => Carbon::now()->addMinutes(5)
@@ -65,7 +66,7 @@ class BusinessOwnerPasswordOtpController extends Controller
             return response()->json($validated->errors(), 422);
         }
 
-        $record = BusinessOwnerPasswordOtp::where('email', $request->input('email'))->first();
+        $record = PasswordOtp::where('email', $request->input('email'))->first();
 
         if (!$record) {
             return response()->json(['message' => 'OTP not found'], 404);
@@ -100,7 +101,7 @@ class BusinessOwnerPasswordOtpController extends Controller
             return response()->json($validated->errors(), 422);
         }
 
-        $record = BusinessOwnerPasswordOtp::where('email', $request->input('email'))->first();
+        $record = PasswordOtp::where('email', $request->input('email'))->first();
 
         if (!$record || !$record->verified) {
             return response()->json(['message' => 'OTP not verified'], 400);

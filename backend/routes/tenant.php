@@ -98,12 +98,12 @@ Route::middleware(['tenant'])->group(function () {
         Route::post('/rewards/{id}/toggle', [RewardController::class, 'toggle']);
 
         // Geolocation endpoints
-        Route::get('/branches', [GeolocationController::class, 'allBranches']);
-        Route::post('/reverse', [GeolocationController::class, 'reverseGeocode']);
-        Route::post('/geocode', [GeolocationController::class, 'geocodeAddress']);
-        Route::post('/search', [GeolocationController::class, 'searchPlace']);
-        Route::post('/nearest', [GeolocationController::class, 'nearestBranch']);
-        Route::post('/check-geofence', [GeolocationController::class, 'checkGeofence']);
+        // Route::get('/geo/branches', [GeolocationController::class, 'allBranches']);
+        // Route::post('/geo/reverse', [GeolocationController::class, 'reverseGeocode']);
+        // Route::post('/geo/geocode', [GeolocationController::class, 'geocodeAddress']);
+        // Route::post('/geo/search', [GeolocationController::class, 'searchPlace']);
+        // Route::post('/geo/nearest', [GeolocationController::class, 'nearestBranch']);
+        // Route::post('/geo/check-geofence', [GeolocationController::class, 'checkGeofence']);
         // Route::post('/branches/create-auto', [GeolocationController::class, 'createBranchAuto']);
 
         // Loyalty card Routes

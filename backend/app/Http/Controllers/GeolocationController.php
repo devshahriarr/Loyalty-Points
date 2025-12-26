@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\Business;
 use App\Models\Tenant;
 use App\Models\VisitLog;
 use Illuminate\Http\Request;
@@ -52,12 +53,22 @@ class GeolocationController extends Controller
      */
     public function reverseGeocode(Request $request)
     {
-        $request->validate([
-            'lat' => 'required|numeric',
-            'lng' => 'required|numeric',
-        ]);
+        $business_name= $request->name;
+        $business = Business::where('name', $business_name)->first();
+        $tenant = Tenant::where('business_id', $business->id)->first();
 
-        $result = $this->google->reverseGeocode($request->lat, $request->lng);
+        $tenant->makeCurrent();
+
+        $branches = Branch::query()->select('id', 'name','latitude','longitude')->get()->toArray();
+        // dd($branches);
+
+        // $request->validate([
+        //     'lat' => 'required|numeric',
+        //     'lng' => 'required|numeric',
+        // ]);
+        $tenant->forget();
+
+        $result = $this->google->reverseGeocode($branches);
 
         return response()->json([
             'status' => 'success',
@@ -68,13 +79,38 @@ class GeolocationController extends Controller
     /**
      * Geocode address → lat/lng
      */
+    public function searchShopLocation(Request $request)
+    {
+        $business_name= $request->name;
+
+        // $host = $request->getHost();
+        // $tenant = Tenant::where('domain', $host)->first();
+        $business = Business::where('owner_id', $tenant->id)->first();
+        $address = $business->address;
+
+        // $request->validate([
+        //     'address' => 'required|string',
+        // ]);
+
+        $result = $this->google->geocodeAddress($address);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
+        ]);
+    }
     public function geocodeAddress(Request $request)
     {
-        $request->validate([
-            'address' => 'required|string',
-        ]);
+        // $host = $request->getHost();
+        // $tenant = Tenant::where('domain', $host)->first();
+        $business = Business::where('owner_id', $tenant->id)->first();
+        $address = $business->address;
 
-        $result = $this->google->geocodeAddress($request->address);
+        // $request->validate([
+        //     'address' => 'required|string',
+        // ]);
+
+        $result = $this->google->geocodeAddress($address);
 
         return response()->json([
             'status' => 'success',
