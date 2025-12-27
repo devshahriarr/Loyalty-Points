@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('tenant_id')->nullable();
             $table->string('name', 100);
             // $table->unsignedBigInteger('business_id')->nullable();
             // $table->foreignId('business_id')->nullable()->constrained('businesses')->onDelete('cascade')->onUpdate('cascade');
@@ -21,7 +22,6 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('manager_name', 255);
             $table->integer('staffs')->nullable();
-            $table->unsignedBigInteger('tenant_id')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
             $table->timestamps();

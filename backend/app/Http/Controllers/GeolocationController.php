@@ -5,337 +5,151 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\Business;
 use App\Models\Tenant;
-use App\Models\VisitLog;
-use Illuminate\Http\Request;
 use App\Services\GoogleMapsService;
+use Illuminate\Http\Request;
 
 class GeolocationController extends Controller
 {
-    protected $google;
+    protected GoogleMapsService $googleMaps;
 
-    public function __construct(GoogleMapsService $google)
+    public function __construct(GoogleMapsService $googleMaps)
     {
-        $this->google = $google;
+        $this->googleMaps = $googleMaps;
     }
 
-    /**
-     * Get all branches with lat/lng
-     */
-    public function allBranches()
+    /* -----------------------------
+     1️⃣ Business Search (Admin UI)
+    ----------------------------- */
+    public function searchBusinesses()
     {
-        // $branches = Branch::select('id', 'name', 'latitude', 'longitude')->get();
+        $businesses = Business::all();
+        $allBranches = [];
 
-        // return response()->json([
-        //     'status' => 'success',
-        //     'branches' => $branches
-        // ]);
+        foreach ($businesses as $business) {
 
-        $tenants = Tenant::all();
-        $results = [];
+            $tenant = Tenant::where('business_id', $business->id)->first();
 
-        foreach ($tenants as $tenant) {
+            if (! $tenant) {
+                continue;
+            }
+
             $tenant->makeCurrent();
 
-            $branches = Branch::select('id', 'name', 'latitude', 'longitude')->get();
+            $branches = Branch::select(
+                'id',
+                'name',
+                'address',
+                'latitude',
+                'longitude'
+            )->get();
 
-            $results[] = [
-                'tenant_id' => $tenant->id,
-                'tenant_name' => $tenant->name,
-                'branches' => $branches,
+            $allBranches[] = [
+                'business_id'   => $business->id,
+                'business_name' => $business->name,
+                'tenant_id'     => $tenant->id,
+                'branches'      => $branches,
             ];
+
+            $tenant->forgetCurrent();
         }
 
-        return response()->json($results);
+        return response()->json([
+            'status' => 'success',
+            'data'   => $allBranches,
+        ]);
     }
 
-    /**
-     * Reverse Geocode lat/lng → address
-     */
-    public function reverseGeocode(Request $request)
+    /* -----------------------------
+     2️⃣ Branch list by tenant
+    ----------------------------- */
+    public function branchesByTenant(Tenant $tenant)
     {
-        $business_name= $request->name;
-        $business = Business::where('name', $business_name)->first();
-        $tenant = Tenant::where('business_id', $business->id)->first();
-
         $tenant->makeCurrent();
 
-        $branches = Branch::query()->select('id', 'name','latitude','longitude')->get()->toArray();
-        // dd($branches);
+        $branches = Branch::select('id', 'name', 'address', 'latitude', 'longitude')->get();
 
-        // $request->validate([
-        //     'lat' => 'required|numeric',
-        //     'lng' => 'required|numeric',
-        // ]);
-        $tenant->forget();
+        $tenant->forgetCurrent();
 
-        $result = $this->google->reverseGeocode($branches);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $result
-        ]);
+        return $branches;
     }
 
-    /**
-     * Geocode address → lat/lng
-     */
-    public function searchShopLocation(Request $request)
-    {
-        $business_name= $request->name;
-
-        // $host = $request->getHost();
-        // $tenant = Tenant::where('domain', $host)->first();
-        $business = Business::where('owner_id', $tenant->id)->first();
-        $address = $business->address;
-
-        // $request->validate([
-        //     'address' => 'required|string',
-        // ]);
-
-        $result = $this->google->geocodeAddress($address);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $result
-        ]);
-    }
-    public function geocodeAddress(Request $request)
-    {
-        // $host = $request->getHost();
-        // $tenant = Tenant::where('domain', $host)->first();
-        $business = Business::where('owner_id', $tenant->id)->first();
-        $address = $business->address;
-
-        // $request->validate([
-        //     'address' => 'required|string',
-        // ]);
-
-        $result = $this->google->geocodeAddress($address);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $result
-        ]);
-    }
-
-    /**
-     * OPTIONAL — Search a place
-     */
-    public function searchPlace(Request $request)
-    {
-        $request->validate([
-            'query' => 'required|string',
-        ]);
-
-        $result = $this->google->searchPlace($request->query);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $result
-        ]);
-    }
-
-    /**
-     * Return nearest branches to a given lat/lng
-     * Request: { lat, lng, max_distance_km (optional, default 50), limit (optional) }
-     */
-    public function nearestBranch(Request $request)
-    {
-        $request->validate([
-            'lat' => 'required|numeric',
-            'lng' => 'required|numeric',
-            'max_distance_km' => 'nullable|numeric',
-            'limit' => 'nullable|integer',
-        ]);
-
-        $lat = (float) $request->lat;
-        $lng = (float) $request->lng;
-        $maxDistanceKm = $request->filled('max_distance_km') ? (float)$request->max_distance_km : 50.0;
-        $limit = $request->filled('limit') ? (int)$request->limit : 10;
-
-        // Bounding box for quick filtering (approx)
-        [$minLat, $maxLat, $minLng, $maxLng] = $this->bbox($lat, $lng, $maxDistanceKm);
-
-        $candidates = Branch::select('id','name','latitude','longitude','address')
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->whereBetween('latitude', [$minLat, $maxLat])
-            ->whereBetween('longitude', [$minLng, $maxLng])
-            ->get();
-
-        // calculate distance and sort
-        $results = [];
-        foreach ($candidates as $b) {
-            $distanceKm = $this->haversine($lat, $lng, (float)$b->latitude, (float)$b->longitude);
-            if ($distanceKm <= $maxDistanceKm) {
-                $results[] = [
-                    'branch' => $b,
-                    'distance_km' => $distanceKm,
-                ];
-            }
-        }
-
-        // sort by distance
-        usort($results, function($a, $b) {
-            return $a['distance_km'] <=> $b['distance_km'];
-        });
-
-        return response()->json([
-            'status' => 'success',
-            'data' => array_slice($results, 0, $limit),
-        ]);
-    }
-
-    /**
-     * Check geofence: is lat/lng within radius_meters of any branch
-     * Request: { lat, lng, radius_meters (optional, default 100), record_visit (bool) }
-     */
-    public function checkGeofence(Request $request)
-    {
-        $request->validate([
-            'lat' => 'required|numeric',
-            'lng' => 'required|numeric',
-            'radius_meters' => 'nullable|numeric',
-            'record_visit' => 'nullable|boolean',
-            'customer_id' => 'nullable|integer' // optional if you want to log who entered
-        ]);
-
-        $lat = (float) $request->lat;
-        $lng = (float) $request->lng;
-        $radiusMeters = $request->filled('radius_meters') ? (float)$request->radius_meters : 100.0;
-
-        // small conversion: radius in km
-        $radiusKm = $radiusMeters / 1000.0;
-
-        // quick bbox of radiusKm
-        [$minLat, $maxLat, $minLng, $maxLng] = $this->bbox($lat, $lng, $radiusKm);
-
-        $candidates = Branch::select('id','name','latitude','longitude','address')
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->whereBetween('latitude', [$minLat, $maxLat])
-            ->whereBetween('longitude', [$minLng, $maxLng])
-            ->get();
-
-        $inside = [];
-        foreach ($candidates as $b) {
-            $distanceKm = $this->haversine($lat, $lng, (float)$b->latitude, (float)$b->longitude);
-            $distanceMeters = $distanceKm * 1000;
-            if ($distanceMeters <= $radiusMeters) {
-                $inside[] = [
-                    'branch' => $b,
-                    'distance_m' => $distanceMeters,
-                ];
-            }
-        }
-
-        $response = [
-            'status' => 'success',
-            'inside_geofence' => count($inside) > 0,
-            'matches' => $inside,
-        ];
-
-        // optional: record visit(s)
-        if ($request->filled('record_visit') && $request->boolean('record_visit') && $request->filled('customer_id')) {
-            foreach ($inside as $match) {
-                VisitLog::create([
-                    'customer_id' => $request->customer_id,
-                    'branch_id' => $match['branch']->id,
-                    'detected_at' => now(),
-                    'lat' => $lat,
-                    'lng' => $lng,
-                    'distance_m' => $match['distance_m'],
-                ]);
-            }
-            $response['recorded'] = true;
-        }
-
-        return response()->json($response);
-    }
-
-    /**
-     * Create branch with automatic geocoding if lat/lng not provided
-     * Request: { name, address (optional), lat (optional), lng (optional), other branch fields... }
-     */
-    // public function createBranchAuto(Request $request)
+    /* -----------------------------
+     3️⃣ Single branch location
+    ----------------------------- */
+    // public function branchLocation(Branch $branch)
     // {
-    //     $request->validate([
-    //         'name' => 'required|string|max:255',
-    //         'address' => 'nullable|string',
-    //         'latitude' => 'nullable|numeric',
-    //         'longitude' => 'nullable|numeric',
-    //         // add other branch fields validation as needed
-    //     ]);
 
-    //     $data = $request->only(['name', 'address', /* other fields */]);
-
-    //     if (! $request->filled('latitude') || ! $request->filled('longitude')) {
-    //         if (! $request->filled('address')) {
-    //             return response()->json([
-    //                 'status' => 'error',
-    //                 'message' => 'Either latitude/longitude or address must be provided'
-    //             ], 422);
-    //         }
-
-    //         // geocode
-    //         $geo = $this->google->geocodeAddress($request->address);
-    //         if (isset($geo['results'][0]['geometry']['location'])) {
-    //             $loc = $geo['results'][0]['geometry']['location'];
-    //             $data['latitude'] = $loc['lat'];
-    //             $data['longitude'] = $loc['lng'];
-    //         } else {
-    //             return response()->json([
-    //                 'status' => 'error',
-    //                 'message' => 'Unable to geocode address'
-    //             ], 422);
-    //         }
-    //     } else {
-    //         $data['latitude'] = (float)$request->latitude;
-    //         $data['longitude'] = (float)$request->longitude;
-    //     }
-
-    //     // create branch (you said BranchController exists — adjust to use your logic)
-    //     $branch = Branch::create($data);
 
     //     return response()->json([
-    //         'status' => 'success',
-    //         'branch' => $branch
+    //         'id' => $branch->id,
+    //         'name' => $branch->name,
+    //         'lat' => $branch->latitude,
+    //         'lng' => $branch->longitude,
     //     ]);
     // }
 
-    /* ----------------------
-       Helper methods
-       ---------------------- */
-
-    // haversine distance (km)
-    private function haversine($lat1, $lon1, $lat2, $lon2)
+    /* -----------------------------
+     4️⃣ Geofence check (100m)
+    ----------------------------- */
+    public function checkGeofence(Request $request)
     {
-        $earthRadius = 6371; // km
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLon = deg2rad($lon2 - $lon1);
-        $a = sin($dLat/2) * sin($dLat/2) +
-             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-             sin($dLon/2) * sin($dLon/2);
-        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
-        return $earthRadius * $c;
+        $request->validate([
+            'tenant_id' => 'required|exists:tenants,id',
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
+            'radius_meters' => 'nullable|numeric'
+        ]);
+
+        $radius = $request->radius_meters ?? 100;
+
+        $tenant = Tenant::findOrFail($request->tenant_id);
+        $tenant->makeCurrent();
+
+        $branches = Branch::whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get();
+
+        foreach ($branches as $branch) {
+            $distance = $this->distanceMeters(
+                $request->lat,
+                $request->lng,
+                $branch->latitude,
+                $branch->longitude
+            );
+
+            if ($distance <= $radius) {
+                $tenant->forgetCurrent();
+
+                return response()->json([
+                    'inside' => true,
+                    'branch_id' => $branch->id,
+                    'branch_name' => $branch->name,
+                    'distance_m' => round($distance, 2)
+                ]);
+            }
+        }
+
+        $tenant->forgetCurrent();
+
+        return response()->json([
+            'inside' => false,
+            'message' => 'Not within 100 meters'
+        ], 403);
     }
 
-    /**
-     * Bounding box (minLat, maxLat, minLng, maxLng) given center & distance in km
-     * This is approximate but good for pre-filtering.
-     */
-    private function bbox($lat, $lng, $distanceKm)
+    private function distanceMeters($lat1, $lng1, $lat2, $lng2): float
     {
-        $earthRadius = 6371; // km
+        $earthRadius = 6371000; // meters
 
-        $deltaLat = rad2deg($distanceKm / $earthRadius);
-        $deltaLng = rad2deg($distanceKm / ($earthRadius * cos(deg2rad($lat))));
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
 
-        $minLat = $lat - $deltaLat;
-        $maxLat = $lat + $deltaLat;
-        $minLng = $lng - $deltaLng;
-        $maxLng = $lng + $deltaLng;
+        $a = sin($dLat/2) ** 2 +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLng/2) ** 2;
 
-        return [$minLat, $maxLat, $minLng, $maxLng];
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+
+        return $earthRadius * $c;
     }
 }

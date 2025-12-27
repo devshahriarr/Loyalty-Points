@@ -43,13 +43,10 @@ Route::prefix('/admin')->group(function () {
         Route::put('/plans/{id}/toggle', [PlanActivationController::class, 'toggle']);
 
         // geolocation routes
-        Route::get('/geo/branches', [GeolocationController::class, 'allBranches']);
-        Route::post('/geo/reverse', [GeolocationController::class, 'reverseGeocode']);
-        Route::post('/geo/geocode', [GeolocationController::class, 'geocodeAddress']);
-        Route::post('/geo/search', [GeolocationController::class, 'searchPlace']);
-        Route::post('/geo/nearest', [GeolocationController::class, 'nearestBranch']);
+        Route::get('/geo/businesses', [GeolocationController::class, 'searchBusinesses']);
         Route::post('/geo/check-geofence', [GeolocationController::class, 'checkGeofence']);
-        // Route::post('/branches/create-auto', [GeolocationController::class, 'createBranchAuto']);
+        Route::get('/geo/branches/{tenant}', [GeolocationController::class, 'branchesByTenant']);
+        // Route::get('/geo/branch/{branch}', [GeolocationController::class, 'branchLocation']);
 
     });
 });
