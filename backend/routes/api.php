@@ -46,6 +46,7 @@ Route::prefix('/admin')->group(function () {
         Route::get('/geo/businesses', [GeolocationController::class, 'searchBusinesses']);
         Route::post('/geo/check-geofence', [GeolocationController::class, 'checkGeofence']);
         Route::get('/geo/branches/{tenant}', [GeolocationController::class, 'branchesByTenant']);
+        Route::post('geo/get-address', [GeolocationController::class, 'getAddressFromLatLng']);
         // Route::get('/geo/branch/{branch}', [GeolocationController::class, 'branchLocation']);
 
     });

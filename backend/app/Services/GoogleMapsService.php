@@ -78,6 +78,7 @@ class GoogleMapsService
 
         return [
             'formatted_address' => $data['results'][0]['formatted_address'],
+            // "address_components" => $data['results'][0]['address_components'],
             'place_id' => $data['results'][0]['place_id'] ?? null,
         ];
     }

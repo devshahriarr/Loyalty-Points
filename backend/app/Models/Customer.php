@@ -59,4 +59,9 @@ class Customer extends Model
         return $this->hasMany(CustomerLoyaltyCard::class);
     }
 
+    public function visitLogs()
+    {
+        return $this->hasMany(VisitLog::class);
+    }
+
 }

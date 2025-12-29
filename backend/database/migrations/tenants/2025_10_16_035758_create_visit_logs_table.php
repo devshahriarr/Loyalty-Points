@@ -20,8 +20,10 @@ return new class extends Migration
             $table->float('distance_m')->nullable();
             $table->timestamp('detected_at')->nullable();
             // $table->timestamp('visited_at')->useCurrent();
-            $table->string('visit_source', 20);
+            $table->string('visit_source', 20)->nullable();
             $table->timestamps();
+
+            $table->index(['customer_id', 'branch_id', 'detected_at']);
         });
     }
 

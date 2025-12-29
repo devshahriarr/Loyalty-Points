@@ -11,14 +11,15 @@ class RewardController extends Controller
     // List rewards with search
     public function index(Request $request)
     {
-        $query = Reward::query();
+        // $query = Reward::query();
 
-        if ($request->filled('q')) {
-            $q = $request->q;
-            $query->where('name', 'like', "%$q%");
-        }
+        // if ($request->filled('q')) {
+        //     $q = $request->q;
+        //     $query->where('name', 'like', "%$q%");
+        // }
 
-        $rewards = $query->orderByDesc('created_at')->paginate(10);
+        // $rewards = $query->orderByDesc('created_at');
+        $rewards = Reward::query()->orderByDesc('created_at')->get();
 
         return response()->json([
             'status' => 'success',
@@ -47,9 +48,9 @@ class RewardController extends Controller
         $reward = Reward::create($validated);
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Reward created successfully',
-            'data' => $reward
+            'data'    => $reward
         ]);
     }
 
@@ -80,9 +81,9 @@ class RewardController extends Controller
         $reward->update($validated);
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Reward updated successfully',
-            'data' => $reward
+            'data'    => $reward
         ]);
     }
 
@@ -95,7 +96,7 @@ class RewardController extends Controller
         $reward->save();
 
         return response()->json([
-            'status' => 'success',
+            'status'    => 'success',
             'is_active' => $reward->is_active
         ]);
     }
@@ -112,7 +113,7 @@ class RewardController extends Controller
         $reward->delete();
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Reward deleted successfully'
         ]);
     }

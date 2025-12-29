@@ -18,7 +18,7 @@ class GeolocationController extends Controller
     }
 
     /* -----------------------------
-     1️⃣ Business Search (Admin UI)
+     Business Search (Admin UI)
     ----------------------------- */
     public function searchBusinesses()
     {
@@ -35,13 +35,13 @@ class GeolocationController extends Controller
 
             $tenant->makeCurrent();
 
-            $branches = Branch::select(
+            $branches = Branch::query()->select(
                 'id',
                 'name',
                 'address',
                 'latitude',
                 'longitude'
-            )->get();
+            )->whereNotNull('latitude')->whereNotNull('longitude')->get();
 
             $allBranches[] = [
                 'business_id'   => $business->id,
@@ -60,43 +60,36 @@ class GeolocationController extends Controller
     }
 
     /* -----------------------------
-     2️⃣ Branch list by tenant
+     Branch list by tenant
     ----------------------------- */
     public function branchesByTenant(Tenant $tenant)
     {
         $tenant->makeCurrent();
 
-        $branches = Branch::select('id', 'name', 'address', 'latitude', 'longitude')->get();
+        $branches = Branch::query()->select('id', 'name', 'address', 'latitude', 'longitude')->get();
 
         $tenant->forgetCurrent();
 
         return $branches;
     }
 
-    /* -----------------------------
-     3️⃣ Single branch location
-    ----------------------------- */
-    // public function branchLocation(Branch $branch)
-    // {
-
-
-    //     return response()->json([
-    //         'id' => $branch->id,
-    //         'name' => $branch->name,
-    //         'lat' => $branch->latitude,
-    //         'lng' => $branch->longitude,
-    //     ]);
-    // }
 
     /* -----------------------------
-     4️⃣ Geofence check (100m)
+     Geofence check (100m)
     ----------------------------- */
     public function checkGeofence(Request $request)
     {
+        // $data = $this->searchBusinesses();
+        // // 2. Response object theke raw content ber kora
+        // $content = $data->getContent();
+        // // 3. JSON string-ke PHP array-te rupantor kora
+        // $allBranches = json_decode($content, true);
+        // dd($allBranches);
+
         $request->validate([
-            'tenant_id' => 'required|exists:tenants,id',
-            'lat' => 'required|numeric',
-            'lng' => 'required|numeric',
+            'tenant_id'     => 'required|exists:tenants,id',
+            'lat'           => 'required|numeric',
+            'lng'           => 'required|numeric',
             'radius_meters' => 'nullable|numeric'
         ]);
 
@@ -106,8 +99,8 @@ class GeolocationController extends Controller
         $tenant->makeCurrent();
 
         $branches = Branch::whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->get();
+        ->whereNotNull('longitude')
+        ->get();
 
         foreach ($branches as $branch) {
             $distance = $this->distanceMeters(
@@ -121,10 +114,10 @@ class GeolocationController extends Controller
                 $tenant->forgetCurrent();
 
                 return response()->json([
-                    'inside' => true,
-                    'branch_id' => $branch->id,
+                    'inside'      => true,
+                    'branch_id'   => $branch->id,
                     'branch_name' => $branch->name,
-                    'distance_m' => round($distance, 2)
+                    'distance_m'  => round($distance, 2)
                 ]);
             }
         }
@@ -132,7 +125,7 @@ class GeolocationController extends Controller
         $tenant->forgetCurrent();
 
         return response()->json([
-            'inside' => false,
+            'inside'  => false,
             'message' => 'Not within 100 meters'
         ], 403);
     }
@@ -145,11 +138,50 @@ class GeolocationController extends Controller
         $dLng = deg2rad($lng2 - $lng1);
 
         $a = sin($dLat/2) ** 2 +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($dLng/2) ** 2;
+        cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+        sin($dLng/2) ** 2;
 
         $c = 2 * atan2(sqrt($a), sqrt(1-$a));
 
         return $earthRadius * $c;
     }
+
+    public function getAddressFromLatLng(Request $request)
+    {
+        $request->validate([
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
+        ]);
+
+        $address = $this->googleMaps->reverseGeocode($request->lat, $request->lng);
+
+        return response()->json($address);
+    }
+
+    // public function searchPlace(Request $request)
+    // {
+        //     $request->validate([
+            //         'query' => 'required|string',
+            //     ]);
+
+    //     $places = $this->googleMaps->searchPlace($request->query->get('query'));
+
+    //     return response()->json($places);
+    // }
+
+
+    /* -----------------------------
+    Single branch location
+    ----------------------------- */
+    // public function branchLocation(Branch $branch)
+    // {
+
+
+    //     return response()->json([
+    //         'id' => $branch->id,
+    //         'name' => $branch->name,
+    //         'lat' => $branch->latitude,
+    //         'lng' => $branch->longitude,
+    //     ]);
+    // }
 }

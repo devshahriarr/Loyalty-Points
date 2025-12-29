@@ -8,10 +8,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPasswordOtpController;
 use App\Http\Controllers\CustomerPointController;
 use App\Http\Controllers\CustomerReviewController;
-use App\Http\Controllers\GeolocationController;
 use App\Http\Controllers\LoyaltyCardController;
 use App\Http\Controllers\OfferController;
-use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PlanActivationController;
 use App\Http\Controllers\RewardController;
 use App\Http\Controllers\StaffController;
@@ -59,21 +57,6 @@ Route::middleware(['tenant'])->group(function () {
         // Branch routes
         Route::apiResource('branches', BranchController::class);
 
-        // Customer routes
-        // Route::apiResource('customers', CustomerController::class);
-
-        // Loyalty card routes
-        // Route::apiResource('loyalty-cards', LoyaltyCardController::class);
-
-        // Customer points routes
-        // Route::apiResource('customer-points', CustomerPointController::class);
-
-        // Visit logs routes
-        // Route::apiResource('user-activities', UserActivityController::class);
-
-        // Offers routes
-        // Route::apiResource('offers', OfferController::class);
-
         Route::get('/analytics/customers', [CustomerAnalyticsController::class, 'index']); // list
         Route::post('/analytics/recalc-all', [CustomerAnalyticsController::class, 'recalcAll']);
 
@@ -97,15 +80,6 @@ Route::middleware(['tenant'])->group(function () {
         // Active/Inactive toggle
         Route::post('/rewards/{id}/toggle', [RewardController::class, 'toggle']);
 
-        // Geolocation endpoints
-        // Route::get('/geo/branches', [GeolocationController::class, 'allBranches']);
-        // Route::post('/geo/reverse', [GeolocationController::class, 'reverseGeocode']);
-        // Route::post('/geo/geocode', [GeolocationController::class, 'geocodeAddress']);
-        // Route::post('/geo/search', [GeolocationController::class, 'searchPlace']);
-        // Route::post('/geo/nearest', [GeolocationController::class, 'nearestBranch']);
-        // Route::post('/geo/check-geofence', [GeolocationController::class, 'checkGeofence']);
-        // Route::post('/branches/create-auto', [GeolocationController::class, 'createBranchAuto']);
-
         // Loyalty card Routes
         Route::get('loyalty-cards', [LoyaltyCardController::class, 'index']);
         Route::get('loyalty-cards/types', [LoyaltyCardController::class,'availableTypes']);
@@ -113,6 +87,21 @@ Route::middleware(['tenant'])->group(function () {
         Route::put('loyalty-cards/{id}/design', [LoyaltyCardController::class,'updateDesign']);
         Route::post('loyalty-cards/{id}/activate', [LoyaltyCardController::class,'activate']);
         Route::delete('loyalty-cards/{id}', [LoyaltyCardController::class,'destroy']);
+
+        // Customer routes
+        // Route::apiResource('customers', CustomerController::class);
+
+        // Loyalty card routes
+        // Route::apiResource('loyalty-cards', LoyaltyCardController::class);
+
+        // Customer points routes
+        // Route::apiResource('customer-points', CustomerPointController::class);
+
+        // Visit logs routes
+        // Route::apiResource('user-activities', UserActivityController::class);
+
+        // Offers routes
+        // Route::apiResource('offers', OfferController::class);
     });
 
 
